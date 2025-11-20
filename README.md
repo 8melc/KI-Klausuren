@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KI-Klausur-Korrektur MVP
 
-## Getting Started
+Eine Next.js-Anwendung zur automatischen Korrektur von Klausuren mit KI-Unterstützung (OpenAI).
 
-First, run the development server:
+## Features
 
+- 📋 **Erwartungshorizont hochladen**: Laden Sie den Erwartungshorizont als PDF hoch
+- 📄 **Klausuren hochladen**: Laden Sie zu korrigierende Klausuren als PDF hoch
+- 🤖 **KI-Analyse**: Automatische Analyse und Bewertung der Klausuren mit OpenAI
+- ✅ **Detaillierte Ergebnisse**: Sehen Sie Punktzahlen, Kommentare und Korrekturen
+- 📥 **PDF-Export**: Laden Sie korrigierte PDFs herunter
+
+## Technologie-Stack
+
+- **Next.js 15** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **pdf-lib** - PDF-Generierung
+- **OpenAI SDK** - KI-Analyse & Vision-basierte Textextraktion
+
+## Installation
+
+1. **Dependencies installieren** (bereits erledigt):
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Umgebungsvariablen konfigurieren**:
+Erstellen Sie eine `.env.local` Datei im Projektroot:
+```env
+OPENAI_API_KEY=your-openai-api-key-here
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Development Server starten**:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. **Anwendung öffnen**:
+Öffnen Sie [http://localhost:3000](http://localhost:3000) im Browser.
 
-## Learn More
+## Verwendung
 
-To learn more about Next.js, take a look at the following resources:
+1. **Erwartungshorizont hochladen**:
+   - Gehen Sie zu `/expectation`
+   - Laden Sie den Erwartungshorizont als PDF hoch
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Klausuren hochladen**:
+   - Gehen Sie zu `/upload`
+   - Laden Sie die zu korrigierenden Klausuren hoch
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Analysieren**:
+   - Gehen Sie zu `/results`
+   - Klicken Sie auf "Klausur analysieren"
+   - Die KI analysiert die Klausur anhand des Erwartungshorizonts
 
-## Deploy on Vercel
+4. **Ergebnisse ansehen**:
+   - Sehen Sie detaillierte Bewertungen, Punktzahlen und Kommentare
+   - Laden Sie korrigierte PDFs herunter
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Projektstruktur
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+/app
+  /expectation      → Erwartungshorizont hochladen
+  /upload           → Klausuren hochladen
+  /results          → Ergebnisse anzeigen
+  /api
+    /extract        → PDF Text extrahieren
+    /analyze        → OpenAI-Analyse
+    /generate-pdf   → korrigiertes PDF erstellen
+
+/lib
+  pdf.ts            → Vision-Extraktion & PDF-Generator
+  openai.ts         → OpenAI API-Client
+
+/components
+  UploadBox.tsx     → Upload-Komponente
+  ResultCard.tsx    → Ergebnis-Karte
+```
+
+## Hinweise
+
+- **OpenAI API Key**: Erforderlich für die KI-Analyse. Erhalten Sie einen Key unter [platform.openai.com](https://platform.openai.com)
+- **OpenAI API Key**: Wird ebenfalls für die Vision-basierte Textextraktion verwendet
+- Die Anwendung speichert Daten temporär im Browser-LocalStorage
+
+## Build für Production
+
+```bash
+npm run build
+npm start
+```
+
+## Deploy auf Vercel
+
+Die einfachste Möglichkeit ist das Deployment auf [Vercel](https://vercel.com):
+
+1. Verbinden Sie Ihr GitHub-Repository
+2. Fügen Sie die Umgebungsvariablen in den Vercel-Einstellungen hinzu
+3. Deploy automatisch bei jedem Push

@@ -9,9 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@uploadthing/react": "^7.3.3",
     "next": "16.0.3",
+    "node-poppler": "^9.0.1",
+    "openai": "^6.9.1",
+    "pdf-lib": "^1.17.1",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "sharp": "^0.34.5",
+    "uploadthing": "^7.7.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
