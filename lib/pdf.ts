@@ -1,96 +1,33 @@
-import OpenAI, { type Uploadable } from 'openai';
-import { File } from 'node:buffer';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const EXTRACTION_PROMPT =
-  'Extrahiere den vollständigen Text aus dieser PDF-Datei. Gib nur Text zurück, ohne Analyse.';
-
-export async function extractPdfText(buffer: Buffer): Promise<string> {
-  const apiKey = process.env.OPENAI_API_KEY;
+export async function extractPdfText(uint8: Uint8Array): Promise<string> {
+  const apiKey = process.env.GOOGLE_AI_KEY;
   if (!apiKey) {
-    throw new Error('OpenAI API Key nicht konfiguriert');
+    throw new Error('Google AI Key nicht konfiguriert');
   }
-
-  const client = new OpenAI({ apiKey });
-  const uint8Array = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
 
   try {
-    const uploadFile = new File([uint8Array], 'klausur.pdf', { type: 'application/pdf' });
-    const uploaded = await client.files.create({
-      file: uploadFile as Uploadable,
-      purpose: 'assistants',
-    });
+    console.log('Starte PDF-Extraktion mit Gemini...');
 
-    const response = await client.responses.create({
-      model: 'gpt-4.1',
-      input: [
-        {
-          role: 'user',
-          content: [
-            { type: 'input_text', text: EXTRACTION_PROMPT },
-            { type: 'input_file', file_id: uploaded.id },
-          ],
-        },
-      ],
-    });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
-    await client.files.delete(uploaded.id).catch(() => {});
-
-    const text = extractResponseText(response as unknown as VisionResponse);
-    if (!text) {
-      throw new Error('PDF-Textextraktion fehlgeschlagen');
-    }
-    return text;
-  } catch (error) {
-    console.error('Vision-only PDF extraction error:', error);
-    throw new Error('PDF-Textextraktion fehlgeschlagen');
-  }
-}
-
-type ResponseContent =
-  | string
-  | {
-      type?: string;
-      text?: string | { value?: string };
-    };
-
-type ResponseChunk = {
-  content?: ResponseContent[];
-};
-
-type VisionResponse = {
-  output_text?: string[];
-  output?: ResponseChunk[];
-};
-
-function extractResponseText(response: VisionResponse): string {
-  if (Array.isArray(response.output_text) && response.output_text.length > 0) {
-    return response.output_text.join('').trim();
-  }
-
-  if (!Array.isArray(response.output)) {
-    return '';
-  }
-
-  return response.output
-    .flatMap((item) => (Array.isArray(item.content) ? item.content : []))
-    .map((content) => {
-      if (typeof content === 'string') {
-        return content;
-      }
-
-      if (content?.type === 'output_text') {
-        if (typeof content.text === 'string') return content.text;
-        if (content.text && typeof content.text === 'object' && 'value' in content.text) {
-          return content.text.value ?? '';
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          data: Buffer.from(uint8).toString('base64'),
+          mimeType: 'application/pdf'
         }
-      }
+      },
+      'Extrahiere den gesamten Text aus diesem PDF-Dokument. Behalte die Struktur bei. Gib nur den reinen Text zurück.'
+    ]);
 
-      if (content?.type === 'text' && typeof content.text === 'string') {
-        return content.text;
-      }
+    const text = result.response.text();
+    console.log('PDF-Extraktion abgeschlossen:', text.length, 'Zeichen');
+    return text;
 
-      return '';
-    })
-    .join('')
-    .trim();
+  } catch (err) {
+    console.error('PDF-Extraktion error:', err);
+    throw new Error(`PDF-Textextraktion fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}`);
+  }
 }

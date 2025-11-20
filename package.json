@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@uploadthing/react": "^7.3.3",
+    "docx": "^9.5.1",
     "next": "16.0.3",
     "node-poppler": "^9.0.1",
     "openai": "^6.9.1",

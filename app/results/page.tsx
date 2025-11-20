@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ResultCard from '@/components/ResultCard';
+import DataResetButton from '@/components/DataResetButton';
 import { KlausurAnalyse } from '@/lib/openai';
 
 export default function ResultsPage() {
@@ -65,15 +66,25 @@ export default function ResultsPage() {
 
   return (
     <div className="container mx-auto p-8 max-w-6xl">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <h1 className="text-3xl font-bold">Ergebnisse anzeigen</h1>
-        <button
-          onClick={handleAnalyze}
-          disabled={isLoading}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {isLoading ? 'Analysiere...' : 'Klausur analysieren'}
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={handleAnalyze}
+            disabled={isLoading}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isLoading ? 'Analysiere...' : 'Klausur analysieren'}
+          </button>
+          <DataResetButton
+            onReset={() => {
+              setAnalyses([]);
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('klausurAnalysen');
+              }
+            }}
+          />
+        </div>
       </div>
 
       {analyses.length === 0 ? (

@@ -14,28 +14,33 @@ export default function ResultCard({ analysis, klausurName }: ResultCardProps) {
     analysis.prozent >= 50 ? 'text-yellow-600' :
     'text-red-600';
 
-  const handleDownloadPDF = async () => {
+  const handleDownloadDoc = async () => {
     try {
-      // TODO: PDF mit Korrekturen generieren
-      const response = await fetch('/api/generate-pdf', {
+      const response = await fetch('/api/generate-doc', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: `Klausur-Bewertung\n\n${analysis.zusammenfassung}`,
-          corrections: [],
+          klausurName: klausurName || 'Klausur',
+          analysis,
         }),
       });
 
-      const data = await response.json();
-      if (data.pdf) {
-        const link = document.createElement('a');
-        link.href = `data:application/pdf;base64,${data.pdf}`;
-        link.download = data.filename || 'korrigierte_klausur.pdf';
-        link.click();
+      if (!response.ok) {
+        throw new Error('Download fehlgeschlagen');
       }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${(klausurName || 'Klausur').replace(/[^a-zA-Z0-9_-]+/g, '_')}_Bewertung.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('PDF download error:', error);
-      alert('Fehler beim Herunterladen des PDFs');
+      console.error('DOC download error:', error);
+      alert('Fehler beim Herunterladen des Word-Dokuments');
     }
   };
 
@@ -102,12 +107,11 @@ export default function ResultCard({ analysis, klausurName }: ResultCardProps) {
 
       {/* Download Button */}
       <button
-        onClick={handleDownloadPDF}
+        onClick={handleDownloadDoc}
         className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
       >
-        Korrigiertes PDF herunterladen
+        Word-Dokument herunterladen
       </button>
     </div>
   );
 }
-
