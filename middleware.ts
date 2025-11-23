@@ -6,6 +6,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
 
+  // Prüfe ob Supabase-Konfiguration vorhanden ist
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  // Wenn Supabase nicht konfiguriert ist, einfach weiterleiten
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({
 
     request,
@@ -16,9 +25,9 @@ export async function middleware(request: NextRequest) {
 
   const supabase = createServerClient(
 
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    supabaseUrl,
 
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseAnonKey,
 
     {
 
