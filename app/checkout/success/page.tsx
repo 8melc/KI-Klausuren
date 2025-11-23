@@ -94,22 +94,3 @@ export default function CheckoutSuccessPage() {
     </Suspense>
   )
 }
-
-export default function CheckoutSuccessPage() {
-  return (
-    <Suspense
-      fallback={
-        <section className="page-section">
-          <div className="container">
-            <div className="text-center">
-              <div className="processing-spinner mx-auto mb-4" aria-hidden />
-              <p>Lädt...</p>
-            </div>
-          </div>
-        </section>
-      }
-    >
-      <CheckoutSuccessContent />
-    </Suspense>
-  )
-}
