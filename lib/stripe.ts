@@ -9,7 +9,7 @@ export function getStripeServerClient(): Stripe {
   }
 
   return new Stripe(secretKey, {
-    apiVersion: '2025-11-17.clover',
+    // API-Version wird automatisch auf die neueste gesetzt
     typescript: true,
   })
 }
