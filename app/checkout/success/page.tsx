@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const sessionId = searchParams.get('session_id')
@@ -73,5 +73,43 @@ export default function CheckoutSuccessPage() {
         </div>
       </div>
     </section>
+  )
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <section className="page-section">
+          <div className="container">
+            <div className="text-center">
+              <div className="processing-spinner mx-auto mb-4" aria-hidden />
+              <p>Lädt...</p>
+            </div>
+          </div>
+        </section>
+      }
+    >
+      <CheckoutSuccessContent />
+    </Suspense>
+  )
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <section className="page-section">
+          <div className="container">
+            <div className="text-center">
+              <div className="processing-spinner mx-auto mb-4" aria-hidden />
+              <p>Lädt...</p>
+            </div>
+          </div>
+        </section>
+      }
+    >
+      <CheckoutSuccessContent />
+    </Suspense>
   )
 }
