@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
 import { extractHandwrittenPdfText } from '@/lib/handwritten-pdf';
+import { checkApiAuth } from '@/lib/auth';
 
 export async function POST(req: Request) {
+  // Auth-Check (während Entwicklung deaktiviert)
+  const authError = await checkApiAuth();
+  if (authError) {
+    return authError;
+  }
+
   try {
     const arrayBuffer = await req.arrayBuffer();
     const uint8 = new Uint8Array(arrayBuffer);

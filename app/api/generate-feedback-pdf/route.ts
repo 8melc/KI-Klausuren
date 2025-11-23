@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
 import { generateFeedbackPdf } from '@/lib/generate-feedback-pdf';
+import { checkApiAuth } from '@/lib/auth';
 
 export async function POST(req: Request) {
+  // Auth-Check (während Entwicklung deaktiviert)
+  const authError = await checkApiAuth();
+  if (authError) {
+    return authError;
+  }
+
   try {
     const { studentName, klausurTitle, date, gradingResult } = await req.json();
 

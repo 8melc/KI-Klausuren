@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import UploadBox from '@/components/UploadBox';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function UploadPage() {
   const [klausurText, setKlausurText] = useState<string | null>(null);
@@ -16,27 +17,66 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="container mx-auto p-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6">Klausuren hochladen</h1>
-      <p className="text-gray-600 mb-8">
-        Laden Sie hier die zu korrigierenden Klausuren als PDF-Dateien hoch.
-      </p>
-      <UploadBox
-        label="Klausur-PDF hochladen"
-        endpoint="/api/extract-klausur"
-        onUploadComplete={handleUploadComplete}
-      />
-      {klausurText && (
-        <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-green-800 font-medium">✓ Klausur erfolgreich geladen</p>
-          <p className="text-sm text-green-600 mt-2">
-            {klausurText.length} Zeichen extrahiert
-          </p>
-          <p className="text-xs text-green-500 mt-2 italic">
-            Vorschau: {klausurText.substring(0, 200)}...
+    <ProtectedRoute>
+      <section className="page-section">
+      <div className="container">
+        <div className="page-intro">
+          <h1 className="page-intro-title">Schülerklausuren hochladen</h1>
+          <p className="page-intro-text">
+            Bündeln Sie alle PDF-Scans eines Klassensatzes. Die KI erkennt automatisch
+            Handschrift, Aufgaben und Zuordnungen.
           </p>
         </div>
-      )}
-    </div>
+
+        <div className="upload-step">
+          <div className="step-header">
+            <span className="step-badge">Schritt 2</span>
+            <h3 className="step-heading">Klausuren sammeln</h3>
+          </div>
+          <UploadBox
+            label="Klausuren hochladen"
+            hint="Mehrere PDF-Dateien auf einmal"
+            buttonLabel="Dateien auswählen"
+            endpoint="/api/extract-klausur"
+            onUploadComplete={handleUploadComplete}
+          />
+        </div>
+
+        {klausurText ? (
+          <div className="status-card status-card-success">
+            <div className="status-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="status-content-title">Klausur importiert</p>
+              <p className="status-content-text">
+                {klausurText.length} Zeichen extrahiert ·{' '}
+                <span className="upload-status-preview">
+                  Vorschau: {klausurText.substring(0, 160)}...
+                </span>
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="status-card status-card-info">
+            <div className="status-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="status-content-title">Tipp</p>
+              <p className="status-content-text">
+                Benennen Sie die Dateien nach den Schülern, damit die Ergebnisse später
+                automatisch zugeordnet werden.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+    </ProtectedRoute>
   );
 }

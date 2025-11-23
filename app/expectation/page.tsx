@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import UploadBox from '@/components/UploadBox';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function ExpectationPage() {
   const [erwartungshorizont, setErwartungshorizont] = useState<string | null>(null);
@@ -13,24 +14,62 @@ export default function ExpectationPage() {
   };
 
   return (
-    <div className="container mx-auto p-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6">Erwartungshorizont hochladen</h1>
-      <p className="text-gray-600 mb-8">
-        Laden Sie hier den Erwartungshorizont als PDF-Datei hoch. Dieser wird für die automatische Korrektur verwendet.
-      </p>
-      <UploadBox 
-        label="Erwartungshorizont-PDF hochladen" 
-        onUploadComplete={handleUploadComplete}
-      />
-      {erwartungshorizont && (
-        <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-green-800 font-medium">✓ Erwartungshorizont erfolgreich geladen</p>
-          <p className="text-sm text-green-600 mt-2">
-            {erwartungshorizont.substring(0, 200)}...
+    <ProtectedRoute>
+      <section className="page-section">
+      <div className="container">
+        <div className="page-intro">
+          <h1 className="page-intro-title">Erwartungshorizont hochladen</h1>
+          <p className="page-intro-text">
+            Laden Sie Musterlösung, Bewertungskriterien oder Rubriken als PDF hoch. Diese
+            Informationen bilden die Basis für jede KI-Auswertung.
           </p>
         </div>
-      )}
-    </div>
+
+        <div className="upload-step">
+          <div className="step-header">
+            <span className="step-badge">Schritt 1</span>
+            <h3 className="step-heading">Grundlagen hochladen</h3>
+          </div>
+          <UploadBox
+            label="Erwartungshorizont"
+            hint="PDF mit Musterlösung oder Bewertungsraster"
+            buttonLabel="PDF auswählen"
+            onUploadComplete={handleUploadComplete}
+          />
+        </div>
+
+        {erwartungshorizont && (
+          <div className="status-card status-card-success">
+            <div className="status-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="status-content-title">Erwartungshorizont gespeichert</p>
+              <p className="status-content-text">
+                {erwartungshorizont.substring(0, 200)}...
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="status-card status-card-info">
+          <div className="status-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <p className="status-content-title">API Key erforderlich</p>
+            <p className="status-content-text">
+              Hinterlegen Sie Ihren OpenAI API Key in der Datei{' '}
+              <code>.env.local</code>, damit die Analyse ausgelöst werden kann.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+    </ProtectedRoute>
   );
 }
-

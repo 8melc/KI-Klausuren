@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createPDF } from '@/lib/pdf-generator';
+import { checkApiAuth } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
+  // Auth-Check (während Entwicklung deaktiviert)
+  const authError = await checkApiAuth();
+  if (authError) {
+    return authError;
+  }
+
   try {
     const body = await request.json();
     const { text, corrections } = body;

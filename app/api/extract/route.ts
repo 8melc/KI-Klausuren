@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractPdfText } from '@/lib/pdf';
+import { checkApiAuth } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
+  // Auth-Check (während Entwicklung deaktiviert)
+  const authError = await checkApiAuth();
+  if (authError) {
+    return authError;
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
