@@ -1,36 +1,94 @@
 import Link from 'next/link';
 
-const heroStats = [
-  { value: '80%', label: 'Zeitersparnis' },
-  { value: '15 Min.', label: 'pro Klassensatz' },
-  { value: '100%', label: 'Nachvollziehbar' },
-];
-
-const steps = [
+const heroCards = [
   {
-    number: '1',
-    title: 'Erwartungshorizont hochladen',
-    description: 'Laden Sie Musterlösung und Bewertungskriterien als PDF hoch.',
+    title: 'Prüfungsvorbereitung',
+    description: 'Erwartungshorizont hochladen, Aufgaben strukturieren und Punkte vergeben.',
   },
   {
-    number: '2',
-    title: 'Klausuren hochladen',
-    description: 'Scannen Sie Schülerklausuren und laden Sie alle PDFs auf einmal.',
+    title: 'Automatische Bewertung',
+    description: 'Klausuren scannen, Text erkennen lassen und mit dem Raster abgleichen.',
   },
   {
-    number: '3',
-    title: 'KI analysiert automatisch',
-    description:
-      'Die Handschrift wird gelesen, mit dem Erwartungshorizont abgeglichen und bewertet.',
-  },
-  {
-    number: '4',
-    title: 'Ergebnisse prüfen & exportieren',
-    description: 'Bewertungen kontrollieren, anpassen und Feedback-PDFs exportieren.',
+    title: 'Transparente Ergebnisse',
+    description: 'Feedback prüfen, Punkte korrigieren und exportfertige Dokumente erstellen.',
   },
 ];
 
-const studentPreview = ['Anna Schmidt', 'Max Müller', 'Lisa Weber'];
+const flowSteps = [
+  {
+    title: 'Vorbereiten',
+    description: 'Erwartungshorizont oder Musterlösung als PDF bereitstellen und Aufgaben samt Punktezahl erfassen.',
+  },
+  {
+    title: 'Klausuren digitalisieren',
+    description: 'Jede Schülerarbeit als PDF hochladen. Dateinamen dienen als Zuordnung.',
+  },
+  {
+    title: 'Bewerten & prüfen',
+    description: 'Die KI verteilt Punkte pro Aufgabe. Lehrkräfte passen jede Aufgabe bei Bedarf manuell an.',
+  },
+  {
+    title: 'Feedback teilen',
+    description: 'Ergebnisse als PDF oder Word exportieren und Notenlisten für die Dokumentation herunterladen.',
+  },
+];
+
+const modules = [
+  {
+    title: 'Upload & Struktur',
+    body: 'Erwartungshorizont, Aufgabenstellung und Bewertungsraster werden einmalig hinterlegt. Das System nutzt diese Vorlage für alle folgenden Arbeiten.',
+  },
+  {
+    title: 'Analyse',
+    body: 'Texterkennung liest jede Arbeit, vergleicht Antworten mit dem Raster und schlägt Punkte inklusive Kommentaren vor.',
+  },
+  {
+    title: 'Review durch Lehrkräfte',
+    body: 'Alle Punkte und Hinweise lassen sich mit einem Klick anpassen. Änderungen aktualisieren automatisch die Gesamtnote.',
+  },
+  {
+    title: 'Export & Kommunikation',
+    body: 'Für jedes Kind steht ein strukturierter Bericht bereit. Zusätzlich entsteht eine Gesamtübersicht für die Notenverwaltung.',
+  },
+];
+
+const pricingPlans = [
+  {
+    title: 'Einzellauf',
+    price: '9 €',
+    interval: 'pro Klausur',
+    description: 'Ideal für einzelne Arbeiten oder Nachprüfungen.',
+    features: [
+      '1 vollständige Korrektur',
+      'PDF-Export für Lehrkraft und Schüler',
+      'Texterkennung inklusive',
+    ],
+  },
+  {
+    title: 'Monatsabo',
+    price: '29 €',
+    interval: 'pro Monat',
+    description: 'Für Fachschaften, die regelmäßig korrigieren.',
+    features: [
+      'Unbegrenzte Korrekturen',
+      'Alle Exportformate',
+      'Priorisierter Support',
+    ],
+    highlighted: true,
+  },
+  {
+    title: 'Jahresabo',
+    price: '299 €',
+    interval: 'pro Jahr',
+    description: 'Planbare Kosten für Schulen mit hoher Auslastung.',
+    features: [
+      'Unbegrenzte Korrekturen',
+      'Nutzung für mehrere Kurse',
+      'Bevorzugte Feature-Wünsche',
+    ],
+  },
+];
 
 export default function Home() {
   return (
@@ -38,31 +96,33 @@ export default function Home() {
       <section className="hero">
         <div className="container">
           <div className="hero-content">
-            <h1 className="hero-title">
-              Klausuren korrigieren in Minuten statt Stunden
-            </h1>
+            <h1 className="hero-title">Klausuren digital prüfen – verständlich und nachvollziehbar</h1>
             <p className="hero-subtitle">
-              KI-gestützte Korrektur für handgeschriebene Klausuren. Präzise, fair und
-              transparent.
+              KorrekturPilot verbindet Erwartungshorizont, automatische Bewertung und klare
+              Feedback-Berichte. Lehrkräfte behalten in jedem Schritt die Kontrolle und sparen
+              gleichzeitig wertvolle Zeit.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-3 mb-10">
-              <Link href="/upload" className="primary-button">
+            <div className="hero-cta-group">
+              <Link href="/correction" className="primary-button">
                 <span>Korrektur starten</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </Link>
-              <Link href="/results" className="secondary-button">
-                <span>Ergebnisse ansehen</span>
+              <Link href="/dashboard" className="secondary-button">
+                <span>Anmelden</span>
+              </Link>
+              <Link href="/results" className="text-link">
+                Beispiel ansehen →
               </Link>
             </div>
 
-            <div className="hero-stats">
-              {heroStats.map((stat) => (
-                <div className="stat" key={stat.label}>
-                  <div className="stat-number">{stat.value}</div>
-                  <div className="stat-label">{stat.label}</div>
+            <div className="feature-grid">
+              {heroCards.map((card) => (
+                <div key={card.title} className="feature-card">
+                  <p className="feature-card-title">{card.title}</p>
+                  <p className="feature-card-text">{card.description}</p>
                 </div>
               ))}
             </div>
@@ -70,116 +130,95 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="how-it-works">
+      <section className="how-it-works" id="ablauf">
         <div className="container">
-          <h2 className="section-title">So funktioniert&apos;s</h2>
-          <div className="steps">
-            {steps.map((step) => (
-              <div className="step" key={step.number}>
-                <div className="step-number">{step.number}</div>
-                <div className="step-content">
-                  <h3 className="step-title">{step.title}</h3>
-                  <p className="step-description">{step.description}</p>
-                </div>
+          <h2 className="section-title">So läuft eine Korrektur ab</h2>
+          <p className="section-description">
+            Der Ablauf orientiert sich am Alltag im Lehrerzimmer: zuerst Struktur festlegen, danach
+            Arbeiten hochladen, anschließend Ergebnisse prüfen und exportieren.
+          </p>
+          <div className="process-grid">
+            {flowSteps.map((step) => (
+              <div key={step.title} className="process-card">
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="upload-section">
+      <section className="module-section">
         <div className="container">
-          <h2 className="section-title">Korrektur starten</h2>
+          <h2 className="section-title">Module im Überblick</h2>
+          <div className="module-grid">
+            {modules.map((module) => (
+              <div key={module.title} className="module-card">
+                <h3>{module.title}</h3>
+                <p>{module.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-          <div className="upload-step">
-            <div className="step-header">
-              <span className="step-badge">Schritt 1</span>
-              <h3 className="step-heading">Grundlagen hochladen</h3>
+      <section className="pricing-section" id="preise">
+        <div className="container">
+          <div className="pricing-header">
+            <h2 className="section-title">Lizenz wählen</h2>
+            <p className="section-description">
+              Alle Pläne enthalten Upload, Analyse, Review und Export. Die Abrechnung erfolgt über
+              Stripe, damit Schulen jederzeit verlängern oder pausieren können.
+            </p>
+          </div>
+          <div className="pricing-grid">
+            {pricingPlans.map((plan) => (
+              <div
+                key={plan.title}
+                className={`pricing-card ${plan.highlighted ? 'pricing-card-highlighted' : ''}`}
+              >
+                {plan.highlighted && <p className="pricing-badge">Empfohlen</p>}
+                <div className="pricing-card-header">
+                  <h3>{plan.title}</h3>
+                  <p className="pricing-card-price">
+                    {plan.price} <span>/ {plan.interval}</span>
+                  </p>
+                </div>
+                <p className="pricing-card-description">{plan.description}</p>
+                <ul className="pricing-card-features">
+                  {plan.features.map((feature) => (
+                    <li key={feature}>{feature}</li>
+                  ))}
+                </ul>
+                <Link href="/checkout" className="primary-button pricing-button">
+                  <span>Lizenz buchen</span>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="cta-section">
+        <div className="container">
+          <div className="cta-card">
+            <div>
+              <p className="cta-badge">Service für Lehrkräfte</p>
+              <h2>Persönliche Begleitung von Upload bis Export</h2>
+              <p>
+                Wir unterstützen bei der Einrichtung, prüfen gemeinsam einen ersten Klassensatz und
+                beantworten alle Rückfragen zum Bewertungsraster. Schreiben Sie uns, wenn Sie eine
+                Einführung für Ihr Kollegium wünschen.
+              </p>
             </div>
-            <div className="upload-grid">
-              <Link href="/expectation" className="upload-box upload-box-link">
-                <div className="upload-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div className="upload-content">
-                  <p className="upload-label">Erwartungshorizont</p>
-                  <p className="upload-hint">PDF mit Musterlösung</p>
-                  <span className="upload-button">Jetzt hochladen</span>
-                </div>
+            <div className="cta-actions">
+              <Link href="/correction" className="primary-button">
+                <span>Korrektur starten</span>
               </Link>
-
-              <div className="upload-box upload-box-muted">
-                <div className="upload-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <div className="upload-content">
-                  <p className="upload-label">Aufgabenstellung</p>
-                  <p className="upload-hint">Optional – in Arbeit</p>
-                  <span className="upload-button">Bald verfügbar</span>
-                </div>
-              </div>
+              <Link href="mailto:kontakt@korrekturpilot.de" className="secondary-button">
+                <span>Kontakt aufnehmen</span>
+              </Link>
             </div>
-          </div>
-
-          <div className="upload-step">
-            <div className="step-header">
-              <span className="step-badge">Schritt 2</span>
-              <h3 className="step-heading">Schülerklausuren hochladen</h3>
-            </div>
-
-            <Link href="/upload" className="upload-box upload-box-large upload-box-link">
-              <div className="upload-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-              <div className="upload-content">
-                <p className="upload-label">Klausuren hochladen</p>
-                <p className="upload-hint">Mehrere PDFs gleichzeitig möglich</p>
-                <span className="upload-button">Dateien auswählen</span>
-              </div>
-            </Link>
-
-            <div className="student-list">
-              <div className="student-list-header">
-                <h4>Ausgewählte Schüler</h4>
-                <span className="student-count">{studentPreview.length} Beispiele</span>
-              </div>
-              {studentPreview.map((student) => (
-                <div className="student-item" key={student}>
-                  <div className="student-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    className="student-name-input"
-                    value={student}
-                    readOnly
-                  />
-                  <button className="remove-button" type="button" disabled>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="action-section">
-            <Link href="/results" className="primary-button">
-              <span>Ergebnisse ansehen</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-            <p className="action-hint">Alle Dateien werden automatisch verarbeitet.</p>
           </div>
         </div>
       </section>

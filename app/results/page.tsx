@@ -1,86 +1,161 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import ResultCard from '@/components/ResultCard';
+import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import DataResetButton from '@/components/DataResetButton';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { KlausurAnalyse } from '@/lib/openai';
 import { getGradeInfo } from '@/lib/grades';
-import { downloadAnalysisDoc } from '@/lib/downloadDoc';
+
+type ResultStatus = 'Analyse läuft…' | 'Bereit' | 'Fehler';
+
+interface StoredAnalysis {
+  id: string;
+  name: string;
+  docId: string;
+  subject: string;
+  gradeLevel: string;
+  className: string;
+  fileName: string;
+  status: ResultStatus;
+  analysis?: KlausurAnalyse;
+}
+
+const loadDocs = () => {
+  const raw = localStorage.getItem('klausurDocs');
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+};
 
 export default function ResultsPage() {
-  const [analyses, setAnalyses] = useState<Array<{ name: string; analysis: KlausurAnalyse }>>([]);
+  const [results, setResults] = useState<StoredAnalysis[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [progressStudent, setProgressStudent] = useState<string | null>(null);
+  const [progressMeta, setProgressMeta] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
+  const [filterSubject, setFilterSubject] = useState('Alle');
+  const [filterGrade, setFilterGrade] = useState('Alle');
+  const [filterClass, setFilterClass] = useState('Alle');
+  const router = useRouter();
 
   useEffect(() => {
-    // Lade gespeicherte Analysen aus localStorage
-    const saved = localStorage.getItem('klausurAnalysen');
-    if (saved) {
+    const stored = localStorage.getItem('klausurAnalysen');
+    if (stored) {
       try {
-        setAnalyses(JSON.parse(saved));
-      } catch (error) {
-        console.error('Error loading analyses:', error);
+        setResults(JSON.parse(stored));
+      } catch {
+        setResults([]);
       }
     }
   }, []);
 
-  const handleAnalyze = async () => {
-    const klausurText = localStorage.getItem('klausurText');
-    const erwartungshorizont = localStorage.getItem('erwartungshorizont');
+  const persistResults = (entries: StoredAnalysis[]) => {
+    setResults(entries);
+    localStorage.setItem('klausurAnalysen', JSON.stringify(entries));
+  };
 
-    if (!klausurText || !erwartungshorizont) {
-      alert('Bitte laden Sie zuerst eine Klausur und einen Erwartungshorizont hoch.');
+  const appendResult = (entry: StoredAnalysis) => {
+    setResults((prev) => {
+      const next = [...prev, entry];
+      localStorage.setItem('klausurAnalysen', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const updateResult = (id: string, partial: Partial<StoredAnalysis>) => {
+    setResults((prev) => {
+      const next = prev.map((entry) => (entry.id === id ? { ...entry, ...partial } : entry));
+      localStorage.setItem('klausurAnalysen', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleAnalyze = useCallback(async () => {
+    const expectation = localStorage.getItem('erwartungshorizont');
+    if (!expectation) {
+      alert('Bitte laden Sie zuerst den Erwartungshorizont hoch.');
       return;
     }
 
+    const docs = loadDocs();
+    if (docs.length === 0) {
+      alert('Bitte laden Sie vorher Klausuren hoch.');
+      return;
+    }
+
+    const processedIds = new Set(results.map((entry) => entry.id));
     setIsLoading(true);
+    setProgressMeta({ current: 0, total: docs.length });
+
     try {
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          klausurText,
-          erwartungshorizont,
-        }),
-      });
+      for (let index = 0; index < docs.length; index++) {
+        const doc = docs[index];
+        setProgressStudent(doc.name);
+        setProgressMeta({ current: index + 1, total: docs.length });
 
-      if (!response.ok) {
-        throw new Error('Analyse fehlgeschlagen');
+        if (processedIds.has(doc.id)) {
+          continue;
+        }
+
+        appendResult({
+          id: doc.id,
+          docId: doc.id,
+          name: doc.name,
+          subject: doc.subject,
+          gradeLevel: doc.gradeLevel,
+          className: doc.className,
+          fileName: doc.name,
+          status: 'Analyse läuft…',
+        });
+
+        processedIds.add(doc.id);
+
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            klausurText: doc.text,
+            erwartungshorizont: expectation,
+          }),
+        });
+
+        if (!response.ok) {
+          updateResult(doc.id, { status: 'Fehler' });
+          continue;
+        }
+
+        const analysis = (await response.json()) as KlausurAnalyse;
+        updateResult(doc.id, { analysis, status: 'Bereit' });
       }
-
-      const analysis = await response.json();
-      const klausurName = localStorage.getItem('klausurName') || 'Klausur';
-
-      const newAnalysis = {
-        name: klausurName,
-        analysis,
-      };
-
-      const updated = [...analyses, newAnalysis];
-      setAnalyses(updated);
-      localStorage.setItem('klausurAnalysen', JSON.stringify(updated));
     } catch (error) {
       console.error('Analyze error:', error);
-      alert('Fehler bei der Analyse. Bitte stellen Sie sicher, dass der OpenAI API Key konfiguriert ist.');
     } finally {
       setIsLoading(false);
+      setProgressStudent(null);
+      setProgressMeta({ current: 0, total: 0 });
     }
-  };
+  }, [results]);
 
-  const scrollToAnalysis = (anchorId: string) => {
-    const element = document.getElementById(anchorId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
+  const filteredResults = useMemo(() => {
+    return results.filter((entry) => {
+      if (filterSubject !== 'Alle' && entry.subject !== filterSubject) return false;
+      if (filterGrade !== 'Alle' && entry.gradeLevel !== filterGrade) return false;
+      if (filterClass !== 'Alle' && entry.className !== filterClass) return false;
+      return true;
+    });
+  }, [results, filterSubject, filterGrade, filterClass]);
 
-  const handleDownload = (name: string, analysis: KlausurAnalyse) => {
-    downloadAnalysisDoc(name || 'Klausur', analysis);
-  };
+  const allSubjects = useMemo(() => Array.from(new Set(results.map((entry) => entry.subject))), [results]);
+  const allGrades = useMemo(() => Array.from(new Set(results.map((entry) => entry.gradeLevel))), [results]);
+  const allClasses = useMemo(() => Array.from(new Set(results.map((entry) => entry.className))), [results]);
 
-  const subtitle = analyses.length
-    ? `${analyses.length} Klausur${analyses.length === 1 ? '' : 'en'} analysiert`
-    : 'Noch keine Analysen vorhanden';
+  const handleRowClick = (entryId: string) => {
+    router.push(`/results/${entryId}`);
+  };
 
   return (
     <ProtectedRoute>
@@ -90,8 +165,12 @@ export default function ResultsPage() {
             <div className="processing-content">
               <div className="processing-spinner" aria-hidden />
               <div className="processing-text">
-                <p className="processing-title">Klausuren werden korrigiert...</p>
-                <p className="processing-subtitle">Bitte warten Sie einen Moment</p>
+                <p className="processing-title">
+                  {progressStudent ? `Analysiere: ${progressStudent}` : 'Analysiere Klausuren...'}
+                </p>
+                <p className="processing-subtitle">
+                  {progressMeta.total > 0 ? `Schritt ${progressMeta.current} von ${progressMeta.total}` : 'Bitte warten...'}
+                </p>
               </div>
             </div>
           </div>
@@ -102,143 +181,107 @@ export default function ResultsPage() {
         <div className="container">
           <div className="results-header">
             <div>
-              <h1 className="results-title">Korrektur-Ergebnisse</h1>
-              <p className="results-subtitle">{subtitle}</p>
+              <h1 className="results-title">Klausuren</h1>
+              <p className="results-subtitle">{results.length} analysierte Arbeiten</p>
             </div>
             <div className="results-actions">
-              <button
-                type="button"
-                onClick={handleAnalyze}
-                disabled={isLoading}
-                className="primary-button"
-              >
-                {isLoading ? (
-                  <>
-                    <span>Analysiere...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Klausur analysieren</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </>
-                )}
+              <button type="button" onClick={handleAnalyze} disabled={isLoading} className="primary-button">
+                <span>Analyse starten</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
               </button>
               <DataResetButton
-                onReset={() => {
-                  setAnalyses([]);
-                  if (typeof window !== 'undefined') {
-                    localStorage.removeItem('klausurAnalysen');
-                  }
-                }}
+                onReset={() => persistResults([])}
+                label="Daten löschen"
               />
             </div>
           </div>
 
-          {analyses.length === 0 ? (
+          <div className="filter-row">
+            <label>
+              Jahrgang
+              <select value={filterGrade} onChange={(e) => setFilterGrade(e.target.value)}>
+                <option value="Alle">Alle</option>
+                {allGrades.map((grade) => (
+                  <option key={grade} value={grade}>{grade}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Fach
+              <select value={filterSubject} onChange={(e) => setFilterSubject(e.target.value)}>
+                <option value="Alle">Alle</option>
+                {allSubjects.map((subject) => (
+                  <option key={subject} value={subject}>{subject}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Klasse
+              <select value={filterClass} onChange={(e) => setFilterClass(e.target.value)}>
+                <option value="Alle">Alle</option>
+                {allClasses.map((klass) => (
+                  <option key={klass} value={klass}>{klass}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {filteredResults.length === 0 ? (
             <div className="results-empty-card">
               <h3>Keine Ergebnisse</h3>
-              <p>
-                Laden Sie eine Klausur und den Erwartungshorizont hoch und starten Sie anschließend
-                die Analyse.
-              </p>
+              <p>Lade eine oder mehrere Klausuren hoch und starte die Analyse. Die Ergebnisse erscheinen hier.</p>
             </div>
           ) : (
-            <>
-              <div className="results-table-card">
-                <table className="results-table">
-                  <thead>
-                    <tr>
-                      <th>Schüler</th>
-                      <th>Status</th>
-                      <th>Punkte</th>
-                      <th>Note</th>
-                      <th>Aktionen</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {analyses.map((item, index) => {
-                      const grade = getGradeInfo(item.analysis.prozent);
-                      const anchorId = `analysis-${index}`;
-                      const initials = item.name
-                        .split(' ')
-                        .map((part) => part[0])
-                        .join('')
-                        .slice(0, 2)
-                        .toUpperCase();
-                      return (
-                        <tr
-                          key={`${item.name}-${index}`}
-                          className="table-row-clickable"
-                          onClick={() => scrollToAnalysis(anchorId)}
-                        >
-                          <td>
-                            <div className="student-cell">
-                              <div className="student-avatar">{initials || '??'}</div>
-                              <span className="student-name">{item.name}</span>
+            <div className="results-table-card">
+              <table className="results-table">
+                <thead>
+                  <tr>
+                    <th>Schüler/in</th>
+                    <th>Fach · Jahrgang · Klasse</th>
+                    <th>Status</th>
+                    <th>Punkte</th>
+                    <th>Note</th>
+                    <th>Aktion</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredResults.map((entry) => {
+                    const grade = entry.analysis ? getGradeInfo(entry.analysis.prozent) : { badgeClass: 'grade-badge-average', label: '?' };
+                    return (
+                      <tr key={entry.id} className="results-row" onClick={() => handleRowClick(entry.id)}>
+                        <td>
+                          <div className="student-cell">
+                            <div className="student-avatar">
+                              {entry.name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase()}
                             </div>
-                          </td>
-                          <td>
-                            <span className="badge badge-success">Abgeschlossen</span>
-                          </td>
-                          <td>
-                            <span className="points-display">
-                              {item.analysis.erreichtePunkte} / {item.analysis.gesamtpunkte}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={`grade-badge ${grade.badgeClass}`}>{grade.label}</span>
-                          </td>
-                          <td>
-                            <div className="action-buttons">
-                              <button
-                                type="button"
-                                className="icon-button"
-                                title="Details anzeigen"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  scrollToAnalysis(anchorId);
-                                }}
-                              >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                  <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                className="icon-button"
-                                title="Word herunterladen"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  handleDownload(item.name, item.analysis);
-                                }}
-                              >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="space-y-10">
-                {analyses.map((item, index) => (
-                  <ResultCard
-                    key={`${item.name}-${index}`}
-                    analysis={item.analysis}
-                    klausurName={item.name}
-                    anchorId={`analysis-${index}`}
-                  />
-                ))}
-              </div>
-            </>
+                            <span className="student-name">{entry.name}</span>
+                          </div>
+                        </td>
+                        <td>{entry.subject} · Jahrgang {entry.gradeLevel} · {entry.className}</td>
+                        <td>
+                          <span
+                            className={`badge ${entry.status === 'Bereit' ? 'badge-success' : entry.status === 'Analyse läuft…' ? 'badge-info' : 'badge-error'}`}
+                          >
+                            {entry.status}
+                          </span>
+                        </td>
+                        <td>{entry.analysis ? `${entry.analysis.erreichtePunkte} / ${entry.analysis.gesamtpunkte}` : '—'}</td>
+                        <td>
+                          <span className={`grade-badge ${grade.badgeClass}`}>{grade.label}</span>
+                        </td>
+                        <td>
+                          <Link href={`/results/${entry.id}`} className="text-link">
+                            Details ansehen →
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </section>

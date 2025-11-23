@@ -32,9 +32,20 @@ Erstellen Sie eine `.env.local` Datei im Projektroot:
 OPENAI_API_KEY=your-openai-api-key-here
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# Stripe (optional, für Zahlungen)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY=price_...
+NEXT_PUBLIC_STRIPE_PRICE_ID_YEARLY=price_...
+NEXT_PUBLIC_STRIPE_PRICE_ID_ONE_TIME=price_...
 ```
 
-3. **Google OAuth in Supabase konfigurieren**:
+3. **Supabase Datenbank-Tabellen erstellen**:
+   - Führen Sie die Migration `supabase/migrations/001_create_stripe_tables.sql` in Ihrem Supabase Dashboard aus
+   - Oder verwenden Sie die Supabase CLI: `supabase db push`
+
+4. **Google OAuth in Supabase konfigurieren**:
    - Öffnen Sie das [Supabase Dashboard](https://app.supabase.com)
    - Gehen Sie zu **Authentication → Providers**
    - Aktivieren Sie **Google**
@@ -43,12 +54,18 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
      (Ersetzen Sie `xxxxx` mit Ihrer Supabase-Projekt-ID)
    - Tragen Sie **Client ID** und **Client Secret** in Supabase ein
 
-4. **Development Server starten**:
+5. **Stripe konfigurieren** (optional):
+   - Erstellen Sie ein Konto bei [Stripe](https://stripe.com)
+   - Erstellen Sie Produkte und Preise im Stripe Dashboard
+   - Kopieren Sie die Price IDs in die `.env.local` Datei
+   - Konfigurieren Sie Webhooks: `https://ihre-domain.com/api/stripe/webhook`
+
+6. **Development Server starten**:
 ```bash
 npm run dev
 ```
 
-5. **Anwendung öffnen**:
+7. **Anwendung öffnen**:
 Öffnen Sie [http://localhost:3000](http://localhost:3000) im Browser.
 
 ## Verwendung
@@ -96,7 +113,8 @@ npm run dev
 - **OpenAI API Key**: Erforderlich für die KI-Analyse. Erhalten Sie einen Key unter [platform.openai.com](https://platform.openai.com)
 - **OpenAI API Key**: Wird ebenfalls für die Vision-basierte Textextraktion verwendet
 - **Supabase**: Erforderlich für die Authentifizierung. Erstellen Sie ein Projekt unter [supabase.com](https://supabase.com)
-- **Google OAuth**: Muss in Supabase und Google Cloud Console konfiguriert werden (siehe Schritt 3)
+- **Google OAuth**: Muss in Supabase und Google Cloud Console konfiguriert werden (siehe Schritt 4)
+- **Stripe**: Optional, für Zahlungen und Abonnements. Erstellen Sie ein Konto bei [stripe.com](https://stripe.com)
 - Die Anwendung speichert Daten temporär im Browser-LocalStorage
 
 ## Build für Production
@@ -132,6 +150,25 @@ Nach der Aktivierung sind folgende Seiten und APIs nur noch für eingeloggte Ben
 
 Die Startseite (`/`) bleibt öffentlich zugänglich.
 
+## Stripe Integration
+
+Die Anwendung unterstützt sowohl Abonnements (monatlich/jährlich) als auch einmalige Zahlungen:
+
+- **Checkout-Seite**: `/checkout` - Zeigt verfügbare Pläne
+- **API-Route**: `/api/stripe/checkout` - Erstellt Stripe Checkout Sessions
+- **Webhook**: `/api/stripe/webhook` - Verarbeitet Stripe Events (Subscriptions, Payments)
+
+### Stripe Setup
+
+1. Erstellen Sie Produkte und Preise im [Stripe Dashboard](https://dashboard.stripe.com/products)
+2. Kopieren Sie die Price IDs in Ihre `.env.local`:
+   - `NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY`
+   - `NEXT_PUBLIC_STRIPE_PRICE_ID_YEARLY`
+   - `NEXT_PUBLIC_STRIPE_PRICE_ID_ONE_TIME`
+3. Konfigurieren Sie Webhooks in Stripe:
+   - Endpoint: `https://ihre-domain.com/api/stripe/webhook`
+   - Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+
 ## Deploy auf Vercel
 
 Die einfachste Möglichkeit ist das Deployment auf [Vercel](https://vercel.com):
@@ -141,7 +178,11 @@ Die einfachste Möglichkeit ist das Deployment auf [Vercel](https://vercel.com):
    - `OPENAI_API_KEY`
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `STRIPE_SECRET_KEY` (optional)
+   - `STRIPE_WEBHOOK_SECRET` (optional)
+   - `NEXT_PUBLIC_STRIPE_PRICE_ID_*` (optional)
 3. **⚠️ WICHTIG**: Aktivieren Sie den Auth-Schutz (siehe Abschnitt "Authentifizierung" oben)
-4. Deploy automatisch bei jedem Push
+4. Konfigurieren Sie Stripe Webhooks mit Ihrer Production-URL
+5. Deploy automatisch bei jedem Push
 
 Siehe auch `DEPLOYMENT.md` für eine detaillierte Deployment-Checkliste.

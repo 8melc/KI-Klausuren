@@ -12,6 +12,13 @@ Gehen Sie zu **Vercel Dashboard → Ihr Projekt → Settings → Environment Var
 OPENAI_API_KEY=your-openai-api-key-here
 NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# Stripe (optional, für Zahlungen)
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY=price_...
+NEXT_PUBLIC_STRIPE_PRICE_ID_YEARLY=price_...
+NEXT_PUBLIC_STRIPE_PRICE_ID_ONE_TIME=price_...
 ```
 
 ### 2. ⚠️ Auth-Schutz aktivieren (KRITISCH!)
@@ -63,6 +70,33 @@ Im **Supabase Dashboard**:
    ```
    (Ersetzen Sie `ihre-domain.vercel.app` mit Ihrer tatsächlichen Vercel-Domain)
 
+### 5. Supabase Datenbank-Tabellen erstellen
+
+Führen Sie die Migration `supabase/migrations/001_create_stripe_tables.sql` in Ihrem Supabase Dashboard aus:
+
+1. Gehen Sie zu **Supabase Dashboard → SQL Editor**
+2. Kopieren Sie den Inhalt von `supabase/migrations/001_create_stripe_tables.sql`
+3. Führen Sie die SQL-Query aus
+
+### 6. Stripe konfigurieren (optional)
+
+Wenn Sie Zahlungen aktivieren möchten:
+
+1. **Produkte und Preise erstellen**:
+   - Gehen Sie zu [Stripe Dashboard → Products](https://dashboard.stripe.com/products)
+   - Erstellen Sie Produkte für monatliche, jährliche und einmalige Zahlungen
+   - Kopieren Sie die Price IDs
+
+2. **Webhook konfigurieren**:
+   - Gehen Sie zu [Stripe Dashboard → Webhooks](https://dashboard.stripe.com/webhooks)
+   - Klicken Sie auf "Add endpoint"
+   - URL: `https://ihre-domain.vercel.app/api/stripe/webhook`
+   - Events auswählen:
+     - `checkout.session.completed`
+     - `customer.subscription.updated`
+     - `customer.subscription.deleted`
+   - Kopieren Sie das Webhook Secret
+
 ## 🚀 Deployment-Schritte
 
 1. **Code committen und pushen**:
@@ -81,6 +115,8 @@ Im **Supabase Dashboard**:
    - ✅ `/expectation`, `/upload`, `/results` erfordern Login
    - ✅ Google OAuth funktioniert
    - ✅ API-Routen sind geschützt
+   - ✅ Stripe Checkout funktioniert (falls konfiguriert)
+   - ✅ Stripe Webhooks empfangen Events
 
 ## 🔍 Troubleshooting
 
@@ -110,6 +146,9 @@ Im **Supabase Dashboard**:
 - [ ] Umgebungsvariablen sind gesetzt
 - [ ] Google OAuth Redirect URIs sind konfiguriert
 - [ ] Supabase Redirect URLs sind konfiguriert
+- [ ] Supabase Datenbank-Tabellen erstellt (subscriptions, payments)
 - [ ] Login funktioniert
 - [ ] Geschützte Seiten erfordern Login
+- [ ] Stripe Produkte und Preise erstellt (falls verwendet)
+- [ ] Stripe Webhook konfiguriert (falls verwendet)
 

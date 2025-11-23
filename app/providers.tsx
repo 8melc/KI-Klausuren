@@ -2,9 +2,7 @@
 
 import { createContext, useContext, ReactNode } from 'react';
 
-interface GradingContextType {
-  // Hier können später Context-Daten hinzugefügt werden
-}
+type GradingContextType = Record<string, never>;
 
 const GradingContext = createContext<GradingContextType | undefined>(undefined);
 
@@ -23,5 +21,3 @@ export function useGrading() {
   }
   return context;
 }
-
-

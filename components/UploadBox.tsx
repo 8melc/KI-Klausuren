@@ -2,12 +2,21 @@
 
 import { useRef, useState } from 'react';
 
+export interface UploadResult {
+  text: string;
+  filename: string;
+  size: number;
+}
+
 interface UploadBoxProps {
-  onUploadComplete?: (text: string) => void;
+  onUploadComplete?: (result: UploadResult) => void;
   label?: string;
   hint?: string;
   buttonLabel?: string;
   endpoint?: string;
+  allowMultiple?: boolean;
+  maxFiles?: number;
+  currentCount?: number;
 }
 
 export default function UploadBox({
@@ -16,20 +25,46 @@ export default function UploadBox({
   hint = 'PDF auswählen und hochladen',
   buttonLabel = 'Datei auswählen',
   endpoint = '/api/extract',
+  allowMultiple = false,
+  maxFiles,
+  currentCount = 0,
 }: UploadBoxProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [lastUploadedName, setLastUploadedName] = useState<string | null>(null);
+  const [lastUploadCount, setLastUploadCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = async (file: File) => {
+  const processFiles = async (fileList: FileList | File[]) => {
+    const files = Array.from(fileList);
+    if (files.length === 0) return;
+
+    const remainingSlots =
+      allowMultiple && typeof maxFiles === 'number'
+        ? Math.max(maxFiles - currentCount, 0)
+        : files.length;
+
+    if (allowMultiple && remainingSlots === 0) {
+      alert('Die maximale Anzahl an Dateien wurde erreicht.');
+      return;
+    }
+
+    const queue = allowMultiple ? files.slice(0, remainingSlots || files.length) : [files[0]];
+    setIsUploading(true);
+    setLastUploadCount(queue.length);
+
+    for (const file of queue) {
+      await uploadSingleFile(file);
+    }
+
+    setIsUploading(false);
+  };
+
+  const uploadSingleFile = async (file: File) => {
     if (file.type !== 'application/pdf') {
       alert('Bitte laden Sie nur PDF-Dateien hoch.');
       return;
     }
-
-    setIsUploading(true);
-    setUploadedFile(file);
 
     try {
       const formData = new FormData();
@@ -46,44 +81,32 @@ export default function UploadBox({
 
       const data = await response.json();
       if (onUploadComplete && data.text) {
-        // Speichere Dateinamen für späteren Gebrauch
-        localStorage.setItem('klausurFilename', file.name);
-        onUploadComplete(data.text);
+        onUploadComplete({
+          text: data.text,
+          filename: data.filename ?? file.name,
+          size: data.size ?? file.size,
+        });
+        setLastUploadedName(file.name);
       } else if (!data.text) {
         alert('Es konnten keine Inhalte aus der Datei gelesen werden.');
       }
     } catch (error) {
       console.error('Upload error:', error);
       alert('Fehler beim Hochladen der Datei.');
-    } finally {
-      setIsUploading(false);
     }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
     setIsDragging(false);
-
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFile(file);
-    }
+    processFiles(event.dataTransfer.files);
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFile(file);
+  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      processFiles(files);
+      event.target.value = '';
     }
   };
 
@@ -103,8 +126,14 @@ export default function UploadBox({
     <div>
       <div
         onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
+        onDragOver={(event) => {
+          event.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={(event) => {
+          event.preventDefault();
+          setIsDragging(false);
+        }}
         onClick={triggerFileDialog}
         onKeyDown={handleKeyDown}
         role="button"
@@ -119,6 +148,7 @@ export default function UploadBox({
           accept="application/pdf"
           onChange={handleFileInput}
           hidden
+          multiple={allowMultiple}
         />
         <div className="upload-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -130,15 +160,24 @@ export default function UploadBox({
             <div className="processing-spinner" aria-hidden />
             <p className="upload-status-hint">Wird hochgeladen...</p>
           </div>
-        ) : uploadedFile ? (
+        ) : lastUploadedName ? (
           <div className="upload-status">
-            <p className="upload-status-success">✓ {uploadedFile.name}</p>
-            <p className="upload-status-hint">Datei erfolgreich hochgeladen</p>
+            <p className="upload-status-success">✓ {lastUploadedName}</p>
+            {allowMultiple && lastUploadCount > 1 ? (
+              <p className="upload-status-hint">{lastUploadCount} Dateien hinzugefügt</p>
+            ) : (
+              <p className="upload-status-hint">Datei erfolgreich hochgeladen</p>
+            )}
           </div>
         ) : (
           <div className="upload-content">
             <p className="upload-label">{label}</p>
             <p className="upload-hint">{hint}</p>
+            {allowMultiple && maxFiles && (
+              <p className="upload-hint">
+                {Math.max(maxFiles - currentCount, 0)} von {maxFiles} Plätzen verfügbar
+              </p>
+            )}
             <button
               type="button"
               className="upload-button"

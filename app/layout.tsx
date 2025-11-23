@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KorrekturPilot – Automatische Klausurkorrektur",
+  title: "KorrekturPilot – Digitale Unterstützung für Klausurkorrekturen",
   description:
-    "KorrekturPilot analysiert handschriftliche Klausuren anhand des Erwartungshorizonts in wenigen Minuten.",
+    "KorrekturPilot hilft Lehrkräften beim Upload, bei der Bewertung und beim Export von Klausuren auf Basis des eigenen Erwartungshorizonts.",
 };
 
 export default function RootLayout({

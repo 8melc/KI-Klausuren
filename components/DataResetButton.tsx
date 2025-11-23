@@ -12,6 +12,7 @@ const RESET_KEYS = [
   'klausurName',
   'klausurAnalysen',
   'erwartungshorizont',
+  'klausurDocs',
 ];
 
 export default function DataResetButton({
