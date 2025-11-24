@@ -10,7 +10,19 @@ export async function GET() {
 
     console.log('Loading prices:', { priceIdPackage25, priceIdOneTime })
 
-    const prices: Record<string, any> = {}
+    type PriceDetail = {
+      id: string
+      amount: number | null
+      currency: string | null
+      formatted: string
+    }
+
+    interface PricesResponse {
+      package25?: PriceDetail
+      oneTime?: PriceDetail
+    }
+
+    const prices: PricesResponse = {}
 
     // Preis für Package 25 laden
     if (priceIdPackage25) {
@@ -24,10 +36,10 @@ export async function GET() {
         prices.package25 = {
           id: pricePackage25.id,
           amount: pricePackage25.unit_amount,
-          currency: pricePackage25.currency,
+          currency: pricePackage25.currency ?? null,
           formatted: new Intl.NumberFormat('de-DE', {
             style: 'currency',
-            currency: pricePackage25.currency?.toUpperCase() || 'EUR',
+            currency: (pricePackage25.currency ?? 'EUR').toUpperCase(),
           }).format((pricePackage25.unit_amount || 0) / 100),
         }
       } catch (error) {
@@ -52,10 +64,10 @@ export async function GET() {
         prices.oneTime = {
           id: priceOneTime.id,
           amount: priceOneTime.unit_amount,
-          currency: priceOneTime.currency,
+          currency: priceOneTime.currency ?? null,
           formatted: new Intl.NumberFormat('de-DE', {
             style: 'currency',
-            currency: priceOneTime.currency?.toUpperCase() || 'EUR',
+            currency: (priceOneTime.currency ?? 'EUR').toUpperCase(),
           }).format((priceOneTime.unit_amount || 0) / 100),
         }
       } catch (error) {
@@ -80,4 +92,3 @@ export async function GET() {
     )
   }
 }
-

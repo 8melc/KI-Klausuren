@@ -1,110 +1,147 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import UploadBox, { UploadResult } from '@/components/UploadBox';
+import UploadBox, { UploadedFile } from '@/components/UploadBox';
+import { CourseInfo, StoredResultEntry, STORAGE_KEY } from '@/types/results';
 
-const MAX_KLAUSUREN = 10;
 const SUBJECT_OPTIONS = ['Mathematik', 'Deutsch', 'Chemie', 'Physik', 'Biologie'];
 const GRADE_OPTIONS = ['5', '6', '7', '8', '9', '10', '11', '12', '13'];
 const CLASS_OPTIONS = ['10A', '10B', '11A', '11B', '12A'];
 
-interface CourseContext {
-  subject: string;
-  gradeLevel: string;
-  className: string;
-  schoolYear: string;
-}
+const appendToStorage = (entry: StoredResultEntry) => {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  const list: StoredResultEntry[] = stored ? JSON.parse(stored) : [];
+  const filtered = list.filter((item) => item.id !== entry.id);
+  const next = [...filtered, entry];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+};
 
-interface KlausurDoc {
-  id: string;
-  name: string;
-  text: string;
-  preview: string;
-  size: number;
-  subject: string;
-  gradeLevel: string;
-  className: string;
-}
-
-const steps = [
-  { id: 1, title: 'Erwartungshorizont', description: 'Bewertungsraster oder Musterlösung als PDF hinterlegen' },
-  { id: 2, title: 'Klausuren', description: 'Einzelne Schülerarbeiten als PDF hochladen' },
-  { id: 3, title: 'Analyse starten', description: 'Bewertungen ansehen, korrigieren und exportieren' },
-];
+const updateStorageEntry = (id: string, patch: Partial<StoredResultEntry>) => {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (!stored) return;
+  const list: StoredResultEntry[] = JSON.parse(stored);
+  const next = list.map((item) => (item.id === id ? { ...item, ...patch } : item));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+};
 
 export default function CorrectionPage() {
-  const [expectationText, setExpectationText] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem('erwartungshorizont');
+  const [course, setCourse] = useState<CourseInfo>({
+    subject: '',
+    gradeLevel: '',
+    className: '',
+    schoolYear: '',
   });
-  const [klausuren, setKlausuren] = useState<KlausurDoc[]>(() => {
-    if (typeof window === 'undefined') return [];
-    const stored = localStorage.getItem('klausurDocs');
-    if (!stored) return [];
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return [];
-    }
-  });
-  const [courseContext, setCourseContext] = useState<CourseContext>(() => {
-    if (typeof window === 'undefined') {
-      return { subject: SUBJECT_OPTIONS[0], gradeLevel: GRADE_OPTIONS[6], className: CLASS_OPTIONS[0], schoolYear: '2025/26' };
-    }
-    const stored = localStorage.getItem('courseContext');
-    if (!stored) return { subject: SUBJECT_OPTIONS[0], gradeLevel: GRADE_OPTIONS[6], className: CLASS_OPTIONS[0], schoolYear: '2025/26' };
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return { subject: SUBJECT_OPTIONS[0], gradeLevel: GRADE_OPTIONS[6], className: CLASS_OPTIONS[0], schoolYear: '2025/26' };
-    }
-  });
+  const [uploads, setUploads] = useState<UploadedFile[]>([]);
+  const [expectationFileName, setExpectationFileName] = useState<string | null>(null);
+  const [expectationText, setExpectationText] = useState<string | null>(null);
+  const [successUploads, setSuccessUploads] = useState<string[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
 
-  const currentStep = useMemo(() => {
-    if (expectationText && klausuren.length > 0) return 3;
-    if (expectationText) return 2;
-    return 1;
-  }, [expectationText, klausuren.length]);
+  const isCourseComplete =
+    Boolean(course.subject) &&
+    Boolean(course.gradeLevel) &&
+    Boolean(course.className) &&
+    Boolean(course.schoolYear);
 
-  const persistDocs = (docs: KlausurDoc[]) => {
-    setKlausuren(docs);
-    localStorage.setItem('klausurDocs', JSON.stringify(docs));
-  };
-
-  const updateCourseContext = (field: keyof CourseContext, value: string) => {
-    const next = { ...courseContext, [field]: value };
-    setCourseContext(next);
+  const handleCourseChange = (field: keyof CourseInfo, value: string) => {
+    const next = { ...course, [field]: value };
+    setCourse(next);
     localStorage.setItem('courseContext', JSON.stringify(next));
   };
 
-  const handleExpectationUpload = (result: UploadResult) => {
-    setExpectationText(result.text);
-    localStorage.setItem('erwartungshorizont', result.text);
+  const handleExpectationUpload = async (files: UploadedFile[]) => {
+    if (!files.length) return;
+    const file = files[0];
+    setExpectationFileName(file.fileName);
+
+    const formData = new FormData();
+    formData.append('file', file.file);
+
+    const response = await fetch('/api/extract', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      setErrorMessage('Der Erwartungshorizont konnte nicht extrahiert werden.');
+      return;
+    }
+
+    const data = await response.json();
+    setExpectationText(data.text);
+    localStorage.setItem('erwartungshorizont', data.text);
+    setErrorMessage(null);
   };
 
-  const handleKlausurUpload = (result: UploadResult) => {
-    const doc: KlausurDoc = {
-      id: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
-      name: result.filename || 'Klausur',
-      text: result.text,
-      preview: result.text.substring(0, 160),
-      size: result.size,
-      subject: courseContext.subject,
-      gradeLevel: courseContext.gradeLevel,
-      className: courseContext.className,
-    };
-    persistDocs([...klausuren, doc].slice(0, MAX_KLAUSUREN));
+  const handleKlausurUpload = (files: UploadedFile[]) => {
+    setUploads((prev) => [...prev, ...files].slice(0, 10));
+    setSuccessUploads(files.map((file) => file.fileName));
   };
 
-  const handleRemoveKlausur = (id: string) => {
-    persistDocs(klausuren.filter((doc) => doc.id !== id));
+  const clearUploads = () => {
+    setUploads([]);
+    setSuccessUploads([]);
   };
 
-  const handleStartAnalysis = () => {
-    if (!expectationText || klausuren.length === 0) return;
-    localStorage.setItem('autoAnalyze', '1');
+  const handleStartAnalysis = async () => {
+    if (!isCourseComplete) {
+      setErrorMessage('Bitte wählen Sie Fach, Jahrgangsstufe, Klasse und Schuljahr.');
+      return;
+    }
+    if (!expectationText) {
+      setErrorMessage('Bitte laden Sie zuerst den Erwartungshorizont hoch.');
+      return;
+    }
+    if (uploads.length === 0) {
+      setErrorMessage('Bitte laden Sie mindestens eine Klausur hoch.');
+      return;
+    }
+
+    setErrorMessage(null);
+
+    for (const upload of uploads) {
+      appendToStorage({
+        id: upload.id,
+        studentName: upload.fileName.replace(/\.pdf$/i, ''),
+        status: 'Analyse läuft…',
+        fileName: upload.fileName,
+        course,
+      });
+
+      const formData = new FormData();
+      formData.append('file', upload.file);
+      const extractResponse = await fetch('/api/extract-klausur', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!extractResponse.ok) {
+        updateStorageEntry(upload.id, { status: 'Fehler' });
+        continue;
+      }
+
+      const extracted = await extractResponse.json();
+      const analysisResponse = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          klausurText: extracted.text,
+          erwartungshorizont: expectationText,
+        }),
+      });
+
+      if (!analysisResponse.ok) {
+        updateStorageEntry(upload.id, { status: 'Fehler' });
+        continue;
+      }
+
+      const analysis = await analysisResponse.json();
+      updateStorageEntry(upload.id, { status: 'Bereit', analysis });
+    }
+
+    clearUploads();
     router.push('/results');
   };
 
@@ -112,35 +149,49 @@ export default function CorrectionPage() {
     <section className="page-section">
       <div className="container">
         <div className="page-intro">
-          <h1 className="page-intro-title">Korrektur starten</h1>
+          <h1 className="page-intro-title">Korrekturprozess</h1>
           <p className="page-intro-text">
-            Wählen Sie Fach, Jahrgang und Klasse aus und laden Sie anschließend Erwartungshorizont
-            sowie Klausuren hoch.
+            Wähle Kursdaten aus, lade Erwartungshorizont und Klausuren hoch und starte anschließend die Analyse.
           </p>
         </div>
 
-        <div className="course-selection">
+        {!isCourseComplete && (
+          <div className="text-red-600 mb-4">
+            Bitte wählen Sie zuerst Fach, Jahrgangsstufe, Klasse und Schuljahr aus.
+          </div>
+        )}
+
+        <div className="course-selection mb-6">
           <label>
             Fach
-            <select value={courseContext.subject} onChange={(e) => updateCourseContext('subject', e.target.value)}>
+            <select value={course.subject} onChange={(e) => handleCourseChange('subject', e.target.value)}>
+              <option value="">Fach wählen</option>
               {SUBJECT_OPTIONS.map((subject) => (
-                <option key={subject} value={subject}>{subject}</option>
+                <option key={subject} value={subject}>
+                  {subject}
+                </option>
               ))}
             </select>
           </label>
           <label>
             Jahrgangsstufe
-            <select value={courseContext.gradeLevel} onChange={(e) => updateCourseContext('gradeLevel', e.target.value)}>
+            <select value={course.gradeLevel} onChange={(e) => handleCourseChange('gradeLevel', e.target.value)}>
+              <option value="">Jahrgang wählen</option>
               {GRADE_OPTIONS.map((grade) => (
-                <option key={grade} value={grade}>{grade}</option>
+                <option key={grade} value={grade}>
+                  {grade}
+                </option>
               ))}
             </select>
           </label>
           <label>
             Klasse
-            <select value={courseContext.className} onChange={(e) => updateCourseContext('className', e.target.value)}>
+            <select value={course.className} onChange={(e) => handleCourseChange('className', e.target.value)}>
+              <option value="">Klasse wählen</option>
               {CLASS_OPTIONS.map((klass) => (
-                <option key={klass} value={klass}>{klass}</option>
+                <option key={klass} value={klass}>
+                  {klass}
+                </option>
               ))}
             </select>
           </label>
@@ -148,120 +199,55 @@ export default function CorrectionPage() {
             Schuljahr
             <input
               type="text"
-              value={courseContext.schoolYear}
-              onChange={(e) => updateCourseContext('schoolYear', e.target.value)}
+              value={course.schoolYear}
+              onChange={(e) => handleCourseChange('schoolYear', e.target.value)}
               placeholder="2025/26"
             />
           </label>
         </div>
 
-        <div className="wizard-steps">
-          {steps.map((step) => (
-            <div key={step.id} className={`wizard-step ${currentStep === step.id ? 'wizard-step-active' : ''} ${currentStep > step.id ? 'wizard-step-complete' : ''}`}>
-              <div className="wizard-step-number">{step.id}</div>
-              <div>
-                <p className="wizard-step-title">{step.title}</p>
-                <p className="wizard-step-description">{step.description}</p>
-              </div>
+        <div className="upload-step">
+          <h2 className="section-title">Schritt 1 – Erwartungshorizont</h2>
+          <UploadBox
+            label="PDF mit Bewertungsraster"
+            onUpload={handleExpectationUpload}
+            disabled={!isCourseComplete}
+          />
+          {expectationFileName && (
+            <div className="status-card status-card-success mt-3">
+              <p>Erwartungshorizont erfolgreich hochgeladen</p>
+              <p>Datei: {expectationFileName}</p>
+            </div>
+          )}
+        </div>
+
+        <div className="upload-step mt-6">
+          <h2 className="section-title">Schritt 2 – Schülerklausuren</h2>
+          <UploadBox
+            allowMultiple
+            label="Klausuren (max. 10)"
+            buttonLabel="Dateien auswählen"
+            onUpload={handleKlausurUpload}
+            disabled={!isCourseComplete}
+          />
+          {successUploads.map((name) => (
+            <div key={name} className="status-card status-card-success mt-2">
+              <p>Klausur erfolgreich hochgeladen</p>
+              <p>{name}</p>
             </div>
           ))}
         </div>
 
-        <div className="upload-step" id="expectation-step">
-          <div className="step-header">
-            <span className="step-badge">Schritt 1</span>
-            <h3 className="step-heading">Erwartungshorizont &amp; Kriterien</h3>
-          </div>
-          <UploadBox
-            label="Erwartungshorizont"
-            hint="PDF mit Bewertungsraster oder Musterlösung"
-            buttonLabel={expectationText ? 'Erneut hochladen' : 'PDF auswählen'}
-            onUploadComplete={handleExpectationUpload}
-          />
-          {expectationText && (
-            <div className="status-card status-card-success">
-              <div className="status-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="status-content-title">Erwartungshorizont bereit</p>
-                <p className="status-content-text">{expectationText.substring(0, 180)}...</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="upload-step" id="klausur-step">
-          <div className="step-header">
-            <span className="step-badge">Schritt 2</span>
-            <h3 className="step-heading">Schülerklausuren hochladen</h3>
-          </div>
-          <UploadBox
-            label="Klausuren hochladen"
-            hint="Bis zu 10 PDFs pro Lauf"
-            buttonLabel="Dateien auswählen"
-            endpoint="/api/extract-klausur"
-            allowMultiple
-            maxFiles={MAX_KLAUSUREN}
-            currentCount={klausuren.length}
-            onUploadComplete={handleKlausurUpload}
-          />
-          {klausuren.length > 0 ? (
-            <div className="student-list">
-              <div className="student-list-header">
-                <h4>Hochgeladene Arbeiten</h4>
-                <span className="student-count">{klausuren.length}/{MAX_KLAUSUREN} Dateien</span>
-              </div>
-              {klausuren.map((doc) => (
-                <div key={doc.id} className="student-item">
-                  <div className="student-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div className="student-name-input">{doc.name}</div>
-                  <button className="remove-button" type="button" onClick={() => handleRemoveKlausur(doc.id)}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="status-card status-card-info">
-              <div className="status-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="status-content-title">Hinweis</p>
-                <p className="status-content-text">
-                  Nimm dir Zeit für jede Datei. Klassen- und Fachkontext wird automatisch gespeichert.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="action-section wizard-actions">
+        <div className="action-section mt-6">
           <button
             type="button"
             className="primary-button"
+            disabled={!isCourseComplete || !expectationText || uploads.length === 0}
             onClick={handleStartAnalysis}
-            disabled={!expectationText || klausuren.length === 0}
           >
-            <span>Analyse starten</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
+            Analyse starten
           </button>
-          <p className="action-hint">
-            Nach dem Start werden alle Arbeiten sequentiell analysiert und im Ergebnisbereich gelistet.
-          </p>
+          {errorMessage && <p className="text-red-600 mt-2">{errorMessage}</p>}
         </div>
       </div>
     </section>

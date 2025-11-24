@@ -1,61 +1,66 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import ResultCard from '@/components/ResultCard';
-import { KlausurAnalyse } from '@/lib/openai';
+import { useMemo } from 'react';
+import TeacherFeedbackDocument from '@/components/TeacherFeedbackDocument';
+import { RawStoredResult, StoredResultEntry, STORAGE_KEY } from '@/types/results';
 
-type ResultStatus = 'Analyse läuft…' | 'Bereit' | 'Fehler';
+const hydrateEntry = (item: RawStoredResult): StoredResultEntry => {
+  const fallbackCourse = {
+    subject: item.course?.subject ?? item.subject ?? '–',
+    gradeLevel: item.course?.gradeLevel ?? item.gradeLevel ?? '–',
+    className: item.course?.className ?? item.className ?? '–',
+    schoolYear: item.course?.schoolYear ?? item.schoolYear ?? 'Nicht angegeben',
+  };
 
-interface StoredAnalysis {
-  id: string;
-  name: string;
-  docId: string;
-  subject: string;
-  gradeLevel: string;
-  className: string;
-  fileName: string;
-  status: ResultStatus;
-  analysis?: KlausurAnalyse;
-}
+  return {
+    id: item.id ?? '',
+    studentName: item.studentName ?? 'Schüler/in',
+    status: item.status ?? 'Fehler',
+    fileName: item.fileName ?? 'Klausur',
+    analysis: item.analysis,
+    course: item.course || fallbackCourse,
+  };
+};
 
 export default function ResultDetailClient({ id }: { id: string }) {
-  const [entry, setEntry] = useState<StoredAnalysis | null>(null);
-
-  useEffect(() => {
-    const raw = localStorage.getItem('klausurAnalysen');
-    if (!raw) return;
+  const entry = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
     try {
-      const parsed: StoredAnalysis[] = JSON.parse(raw);
-      setEntry(parsed.find((item) => item.id === id) ?? null);
+      const list: RawStoredResult[] = JSON.parse(raw);
+      const found = list.find((item) => item.id === id);
+      if (!found) return null;
+      return hydrateEntry(found);
     } catch {
-      setEntry(null);
+      return null;
     }
   }, [id]);
 
   if (!entry) {
     return (
-      <div className="page-section">
+      <section className="page-section">
         <div className="container">
-          <p className="text-center text-gray-600">Kein Ergebnis für diese Klausur gefunden.</p>
+          <p className="text-center text-gray-600">Keine Analyse für diese Klausur vorhanden.</p>
         </div>
-      </div>
+      </section>
     );
   }
 
   if (!entry.analysis) {
     return (
-      <div className="page-section">
+      <section className="page-section">
         <div className="container">
-          <p className="text-center text-gray-600">Die Analyse läuft noch. Bitte warten Sie einen Moment.</p>
+          <p className="text-center text-gray-600">Die Analyse läuft noch. Bitte warten Sie kurz.</p>
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
     <section className="page-section">
       <div className="container">
-        <ResultCard analysis={entry.analysis} klausurName={entry.name} anchorId={`analysis-${entry.id}`} />
+        <TeacherFeedbackDocument entry={entry} />
       </div>
     </section>
   );

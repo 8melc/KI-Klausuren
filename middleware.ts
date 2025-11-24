@@ -41,7 +41,7 @@ export async function middleware(request: NextRequest) {
 
         setAll(cookiesToSet) {
 
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          cookiesToSet.forEach((cookie) => request.cookies.set(cookie.name, cookie.value))
 
           supabaseResponse = NextResponse.next({
 
@@ -49,9 +49,9 @@ export async function middleware(request: NextRequest) {
 
           })
 
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach((cookie) =>
 
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(cookie.name, cookie.value, cookie.options)
 
           )
 
@@ -86,4 +86,3 @@ export const config = {
   ],
 
 }
-

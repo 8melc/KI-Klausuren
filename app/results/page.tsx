@@ -1,228 +1,126 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
 import DataResetButton from '@/components/DataResetButton';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { KlausurAnalyse } from '@/lib/openai';
+import TeacherFeedbackDocument from '@/components/TeacherFeedbackDocument';
 import { getGradeInfo } from '@/lib/grades';
+import { RawStoredResult, StoredResultEntry, STORAGE_KEY } from '@/types/results';
 
-type ResultStatus = 'Analyse läuft…' | 'Bereit' | 'Fehler';
-
-interface StoredAnalysis {
-  id: string;
-  name: string;
-  docId: string;
-  subject: string;
-  gradeLevel: string;
-  className: string;
-  fileName: string;
-  status: ResultStatus;
-  analysis?: KlausurAnalyse;
-}
-
-const loadDocs = () => {
-  const raw = localStorage.getItem('klausurDocs');
+const readResults = (): StoredResultEntry[] => {
+  if (typeof window === 'undefined') return [];
+  const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return [];
   try {
-    return JSON.parse(raw);
-  } catch {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((item) => {
+      const candidate = item as RawStoredResult;
+      const course = {
+        subject: candidate.course?.subject ?? candidate.subject ?? '–',
+        gradeLevel: candidate.course?.gradeLevel ?? candidate.gradeLevel ?? '–',
+        className: candidate.course?.className ?? candidate.className ?? '–',
+        schoolYear: candidate.course?.schoolYear ?? candidate.schoolYear ?? 'Nicht angegeben',
+      };
+
+      return {
+        ...candidate,
+        course,
+      } as StoredResultEntry;
+    });
+  } catch (error) {
+    console.error('Fehler beim Lesen der Ergebnisse:', error);
     return [];
   }
 };
 
 export default function ResultsPage() {
-  const [results, setResults] = useState<StoredAnalysis[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [progressStudent, setProgressStudent] = useState<string | null>(null);
-  const [progressMeta, setProgressMeta] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
+  const [results, setResults] = useState<StoredResultEntry[]>(() => readResults());
   const [filterSubject, setFilterSubject] = useState('Alle');
   const [filterGrade, setFilterGrade] = useState('Alle');
   const [filterClass, setFilterClass] = useState('Alle');
-  const router = useRouter();
+  const [openResultId, setOpenResultId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const stored = localStorage.getItem('klausurAnalysen');
-    if (stored) {
-      try {
-        setResults(JSON.parse(stored));
-      } catch {
-        setResults([]);
-      }
-    }
-  }, []);
+  const filteredResults = useMemo(
+    () =>
+      results.filter((entry) => {
+        if (filterSubject !== 'Alle' && entry.course.subject !== filterSubject) return false;
+        if (filterGrade !== 'Alle' && entry.course.gradeLevel !== filterGrade) return false;
+        if (filterClass !== 'Alle' && entry.course.className !== filterClass) return false;
+        return true;
+      }),
+    [results, filterSubject, filterGrade, filterClass],
+  );
 
-  const persistResults = (entries: StoredAnalysis[]) => {
-    setResults(entries);
-    localStorage.setItem('klausurAnalysen', JSON.stringify(entries));
+  const subjects = useMemo(() => Array.from(new Set(results.map((entry) => entry.course.subject))), [results]);
+  const grades = useMemo(() => Array.from(new Set(results.map((entry) => entry.course.gradeLevel))), [results]);
+  const classes = useMemo(() => Array.from(new Set(results.map((entry) => entry.course.className))), [results]);
+
+  const refreshResults = () => {
+    setResults(readResults());
   };
 
-  const appendResult = (entry: StoredAnalysis) => {
-    setResults((prev) => {
-      const next = [...prev, entry];
-      localStorage.setItem('klausurAnalysen', JSON.stringify(next));
-      return next;
-    });
+  const resetAllResults = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setResults([]);
+    setOpenResultId(null);
   };
 
-  const updateResult = (id: string, partial: Partial<StoredAnalysis>) => {
-    setResults((prev) => {
-      const next = prev.map((entry) => (entry.id === id ? { ...entry, ...partial } : entry));
-      localStorage.setItem('klausurAnalysen', JSON.stringify(next));
-      return next;
-    });
-  };
-
-  const handleAnalyze = useCallback(async () => {
-    const expectation = localStorage.getItem('erwartungshorizont');
-    if (!expectation) {
-      alert('Bitte laden Sie zuerst den Erwartungshorizont hoch.');
-      return;
-    }
-
-    const docs = loadDocs();
-    if (docs.length === 0) {
-      alert('Bitte laden Sie vorher Klausuren hoch.');
-      return;
-    }
-
-    const processedIds = new Set(results.map((entry) => entry.id));
-    setIsLoading(true);
-    setProgressMeta({ current: 0, total: docs.length });
-
-    try {
-      for (let index = 0; index < docs.length; index++) {
-        const doc = docs[index];
-        setProgressStudent(doc.name);
-        setProgressMeta({ current: index + 1, total: docs.length });
-
-        if (processedIds.has(doc.id)) {
-          continue;
-        }
-
-        appendResult({
-          id: doc.id,
-          docId: doc.id,
-          name: doc.name,
-          subject: doc.subject,
-          gradeLevel: doc.gradeLevel,
-          className: doc.className,
-          fileName: doc.name,
-          status: 'Analyse läuft…',
-        });
-
-        processedIds.add(doc.id);
-
-        const response = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            klausurText: doc.text,
-            erwartungshorizont: expectation,
-          }),
-        });
-
-        if (!response.ok) {
-          updateResult(doc.id, { status: 'Fehler' });
-          continue;
-        }
-
-        const analysis = (await response.json()) as KlausurAnalyse;
-        updateResult(doc.id, { analysis, status: 'Bereit' });
-      }
-    } catch (error) {
-      console.error('Analyze error:', error);
-    } finally {
-      setIsLoading(false);
-      setProgressStudent(null);
-      setProgressMeta({ current: 0, total: 0 });
-    }
-  }, [results]);
-
-  const filteredResults = useMemo(() => {
-    return results.filter((entry) => {
-      if (filterSubject !== 'Alle' && entry.subject !== filterSubject) return false;
-      if (filterGrade !== 'Alle' && entry.gradeLevel !== filterGrade) return false;
-      if (filterClass !== 'Alle' && entry.className !== filterClass) return false;
-      return true;
-    });
-  }, [results, filterSubject, filterGrade, filterClass]);
-
-  const allSubjects = useMemo(() => Array.from(new Set(results.map((entry) => entry.subject))), [results]);
-  const allGrades = useMemo(() => Array.from(new Set(results.map((entry) => entry.gradeLevel))), [results]);
-  const allClasses = useMemo(() => Array.from(new Set(results.map((entry) => entry.className))), [results]);
-
-  const handleRowClick = (entryId: string) => {
-    router.push(`/results/${entryId}`);
+  const toggleResult = (id: string) => {
+    setOpenResultId((current) => (current === id ? null : id));
   };
 
   return (
     <ProtectedRoute>
-      {isLoading && (
-        <div className="processing-banner">
-          <div className="container">
-            <div className="processing-content">
-              <div className="processing-spinner" aria-hidden />
-              <div className="processing-text">
-                <p className="processing-title">
-                  {progressStudent ? `Analysiere: ${progressStudent}` : 'Analysiere Klausuren...'}
-                </p>
-                <p className="processing-subtitle">
-                  {progressMeta.total > 0 ? `Schritt ${progressMeta.current} von ${progressMeta.total}` : 'Bitte warten...'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       <section className="results-section">
         <div className="container">
           <div className="results-header">
             <div>
-              <h1 className="results-title">Klausuren</h1>
-              <p className="results-subtitle">{results.length} analysierte Arbeiten</p>
+              <h1 className="results-title">Alle Klausuren</h1>
+              <p className="results-subtitle">
+                {results.length} Ergebnisse • {filteredResults.length} angezeigt
+              </p>
             </div>
             <div className="results-actions">
-              <button type="button" onClick={handleAnalyze} disabled={isLoading} className="primary-button">
-                <span>Analyse starten</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
+              <button type="button" onClick={refreshResults} className="secondary-button">
+                Liste aktualisieren
               </button>
-              <DataResetButton
-                onReset={() => persistResults([])}
-                label="Daten löschen"
-              />
+              <DataResetButton onReset={resetAllResults} label="Alle Ergebnisse löschen" />
             </div>
           </div>
 
-          <div className="filter-row">
+          <div className="filter-row mb-4">
             <label>
               Jahrgang
-              <select value={filterGrade} onChange={(e) => setFilterGrade(e.target.value)}>
+              <select value={filterGrade} onChange={(event) => setFilterGrade(event.target.value)}>
                 <option value="Alle">Alle</option>
-                {allGrades.map((grade) => (
-                  <option key={grade} value={grade}>{grade}</option>
+                {grades.map((grade) => (
+                  <option key={grade} value={grade}>
+                    {grade}
+                  </option>
                 ))}
               </select>
             </label>
             <label>
               Fach
-              <select value={filterSubject} onChange={(e) => setFilterSubject(e.target.value)}>
+              <select value={filterSubject} onChange={(event) => setFilterSubject(event.target.value)}>
                 <option value="Alle">Alle</option>
-                {allSubjects.map((subject) => (
-                  <option key={subject} value={subject}>{subject}</option>
+                {subjects.map((subject) => (
+                  <option key={subject} value={subject}>
+                    {subject}
+                  </option>
                 ))}
               </select>
             </label>
             <label>
               Klasse
-              <select value={filterClass} onChange={(e) => setFilterClass(e.target.value)}>
+              <select value={filterClass} onChange={(event) => setFilterClass(event.target.value)}>
                 <option value="Alle">Alle</option>
-                {allClasses.map((klass) => (
-                  <option key={klass} value={klass}>{klass}</option>
+                {classes.map((klass) => (
+                  <option key={klass} value={klass}>
+                    {klass}
+                  </option>
                 ))}
               </select>
             </label>
@@ -231,56 +129,64 @@ export default function ResultsPage() {
           {filteredResults.length === 0 ? (
             <div className="results-empty-card">
               <h3>Keine Ergebnisse</h3>
-              <p>Lade eine oder mehrere Klausuren hoch und starte die Analyse. Die Ergebnisse erscheinen hier.</p>
+              <p>Starte eine Analyse, um die Liste der Klausuren zu befüllen.</p>
             </div>
           ) : (
-            <div className="results-table-card">
-              <table className="results-table">
-                <thead>
-                  <tr>
-                    <th>Schüler/in</th>
-                    <th>Fach · Jahrgang · Klasse</th>
-                    <th>Status</th>
-                    <th>Punkte</th>
-                    <th>Note</th>
-                    <th>Aktion</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredResults.map((entry) => {
-                    const grade = entry.analysis ? getGradeInfo(entry.analysis.prozent) : { badgeClass: 'grade-badge-average', label: '?' };
-                    return (
-                      <tr key={entry.id} className="results-row" onClick={() => handleRowClick(entry.id)}>
-                        <td>
-                          <div className="student-cell">
-                            <div className="student-avatar">
-                              {entry.name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase()}
-                            </div>
-                            <span className="student-name">{entry.name}</span>
+            <div className="results-accordion">
+              {filteredResults.map((entry) => {
+                const gradeLabel = entry.analysis
+                  ? getGradeInfo(entry.analysis.prozent)
+                  : { badgeClass: 'grade-badge-average', label: '–' };
+                const statusBadgeClass =
+                  entry.status === 'Bereit'
+                    ? 'badge-success'
+                    : entry.status === 'Analyse läuft…'
+                      ? 'badge-info'
+                      : 'badge-error';
+
+                return (
+                  <article
+                    key={entry.id}
+                    className={`results-accordion-item ${openResultId === entry.id ? 'results-accordion-item--open' : ''}`}
+                  >
+                    <button
+                      type="button"
+                      className="results-accordion-trigger"
+                      onClick={() => toggleResult(entry.id)}
+                    >
+                      <div>
+                        <p className="results-accordion-label">Kurs</p>
+                        <p className="results-accordion-name">{entry.studentName}</p>
+                        <div className="results-accordion-meta">
+                          <span>{entry.course.subject}</span>
+                          <span>Jg. {entry.course.gradeLevel}</span>
+                          <span>{entry.course.className}</span>
+                          <span>{entry.course.schoolYear}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`badge ${statusBadgeClass}`}>{entry.status}</span>
+                        <span className={`grade-badge ${gradeLabel.badgeClass}`}>{gradeLabel.label}</span>
+                      </div>
+                    </button>
+
+                    {openResultId === entry.id && (
+                      <div className="results-accordion-content">
+                        {entry.analysis ? (
+                          <TeacherFeedbackDocument entry={entry} />
+                        ) : (
+                          <div className="text-sm text-gray-600 mb-4">
+                            Die Analyse läuft noch. Sobald sie abgeschlossen ist, erscheint hier die Detailauswertung.
                           </div>
-                        </td>
-                        <td>{entry.subject} · Jahrgang {entry.gradeLevel} · {entry.className}</td>
-                        <td>
-                          <span
-                            className={`badge ${entry.status === 'Bereit' ? 'badge-success' : entry.status === 'Analyse läuft…' ? 'badge-info' : 'badge-error'}`}
-                          >
-                            {entry.status}
-                          </span>
-                        </td>
-                        <td>{entry.analysis ? `${entry.analysis.erreichtePunkte} / ${entry.analysis.gesamtpunkte}` : '—'}</td>
-                        <td>
-                          <span className={`grade-badge ${grade.badgeClass}`}>{grade.label}</span>
-                        </td>
-                        <td>
-                          <Link href={`/results/${entry.id}`} className="text-link">
-                            Details ansehen →
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        )}
+                        <Link href={`/results/${entry.id}`} className="text-link inline-flex items-center gap-1">
+                          Zum Einzelbericht →
+                        </Link>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>

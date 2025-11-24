@@ -2,7 +2,7 @@
 
 import { createContext, useContext, ReactNode } from 'react';
 
-type GradingContextType = Record<string, never>;
+type GradingContextType = Record<string, unknown>;
 
 const GradingContext = createContext<GradingContextType | undefined>(undefined);
 
