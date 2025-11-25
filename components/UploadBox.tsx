@@ -9,24 +9,23 @@ export interface UploadedFile {
 }
 
 interface UploadBoxProps {
-  label?: string;
-  hint?: string;
-  buttonLabel?: string;
+  title: string;
+  description: string;
+  buttonLabel: string;
   allowMultiple?: boolean;
   onUpload: (files: UploadedFile[]) => void;
   disabled?: boolean;
 }
 
 export default function UploadBox({
-  label = 'PDF-Datei hochladen',
-  hint = 'Nur PDF-Dateien',
-  buttonLabel = 'Datei auswählen',
+  title,
+  description,
+  buttonLabel,
   allowMultiple = false,
   onUpload,
   disabled = false,
 }: UploadBoxProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const wrapperClass = disabled ? 'upload-box upload-box-muted' : 'upload-box';
 
   const handleFiles = (files: FileList | File[]) => {
     const selected = Array.from(files)
@@ -51,30 +50,69 @@ export default function UploadBox({
   };
 
   return (
-    <div className={wrapperClass}>
+    <div style={{
+      border: '1px solid var(--color-gray-200)',
+      borderRadius: 'var(--radius-lg)',
+      background: 'white',
+      padding: 'var(--spacing-xl)',
+      boxShadow: 'var(--shadow-sm)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 'var(--spacing-md)',
+      minHeight: '200px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+        <div style={{
+          borderRadius: 'var(--radius-lg)',
+          background: 'var(--color-info-light)',
+          color: 'var(--color-primary)',
+          width: '48px',
+          height: '48px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <svg
+            style={{ width: '24px', height: '24px' }}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M16 16l-4 4-4-4M12 4v12" />
+            <path d="M20 16a4 4 0 00-4-4H8a4 4 0 00-4 4" />
+          </svg>
+        </div>
+        <div>
+          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-gray-500)', marginBottom: 'var(--spacing-xs)' }}>Upload</p>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-gray-900)' }}>{title}</h3>
+        </div>
+      </div>
+      <p style={{ fontSize: '0.9375rem', color: 'var(--color-gray-600)' }}>{description}</p>
+      <button
+        type="button"
+        className="primary-button"
+        onClick={triggerDialog}
+        disabled={disabled}
+        style={{ marginTop: 'auto', width: '100%' }}
+      >
+        <span>{buttonLabel}</span>
+      </button>
       <input
         type="file"
         ref={fileInputRef}
+        className="hidden"
+        accept="application/pdf"
+        multiple={allowMultiple}
         onChange={(event) => {
           if (event.target.files) {
             handleFiles(event.target.files);
             event.target.value = '';
           }
         }}
-        accept="application/pdf"
-        multiple={allowMultiple}
-        hidden
       />
-      <button
-        type="button"
-        className="upload-button"
-        onClick={triggerDialog}
-        disabled={disabled}
-      >
-        {buttonLabel}
-      </button>
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className="text-xs text-gray-400">{hint}</p>
     </div>
   );
 }

@@ -133,7 +133,7 @@ export default function ResultsPage() {
             </div>
           ) : (
             <div className="results-accordion">
-              {filteredResults.map((entry) => {
+              {filteredResults.map((entry, index) => {
                 const gradeLabel = entry.analysis
                   ? getGradeInfo(entry.analysis.prozent)
                   : { badgeClass: 'grade-badge-average', label: '–' };
@@ -144,9 +144,12 @@ export default function ResultsPage() {
                       ? 'badge-info'
                       : 'badge-error';
 
+                // Sicherstellen, dass key immer eindeutig ist
+                const uniqueKey = entry.id || `result-${index}-${entry.studentName}`;
+
                 return (
                   <article
-                    key={entry.id}
+                    key={uniqueKey}
                     className={`results-accordion-item ${openResultId === entry.id ? 'results-accordion-item--open' : ''}`}
                   >
                     <button

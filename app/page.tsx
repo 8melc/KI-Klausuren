@@ -103,7 +103,7 @@ export default function Home() {
               gleichzeitig wertvolle Zeit.
             </p>
 
-            <div className="hero-cta-group">
+          <div className="hero-cta-group">
               <Link href="/correction" className="primary-button">
                 <span>Korrektur starten</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

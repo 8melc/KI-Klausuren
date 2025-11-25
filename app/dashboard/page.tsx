@@ -1,31 +1,42 @@
 import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { getDashboardStats } from '@/lib/dashboard';
+import { getSubscriptionStatus } from '@/lib/subscription';
 
-const summaryCards = [
-  {
-    label: 'Erwartungshorizonte',
-    value: '5 aktiv',
-    detail: 'für Deutsch und Chemie hinterlegt',
-  },
-  {
-    label: 'Korrigierte Arbeiten',
-    value: '42',
-    detail: 'in diesem Monat abgeschlossen',
-  },
-  {
-    label: 'Exportierte Berichte',
-    value: '38',
-    detail: 'PDF & Word',
-  },
-];
+export default async function DashboardPage() {
+  const stats = await getDashboardStats();
+  const subscription = await getSubscriptionStatus();
 
-const recentCorrections = [
-  { subject: 'Deutsch Q1', topic: 'Argumentation', date: '12. Mai', students: 24 },
-  { subject: 'Chemie EF', topic: 'Redox-Reaktionen', date: '08. Mai', students: 21 },
-  { subject: 'Geschichte EF', topic: 'Weimarer Republik', date: '02. Mai', students: 26 },
-];
+  const summaryCards = [
+    {
+      label: 'Erwartungshorizonte',
+      value: `${stats.activeExpectationHorizons} aktiv`,
+      detail: stats.activeExpectationHorizons > 0 ? 'hinterlegt' : 'noch keine hinterlegt',
+    },
+    {
+      label: 'Korrigierte Arbeiten',
+      value: `${stats.completedCorrections}`,
+      detail: 'in diesem Monat abgeschlossen',
+    },
+    {
+      label: 'Exportierte Berichte',
+      value: `${stats.exportedReports}`,
+      detail: 'PDF & Word',
+    },
+  ];
 
-export default function DashboardPage() {
+  const subscriptionTypeLabel = subscription.subscriptionType === 'monthly' 
+    ? 'Monatsabo' 
+    : subscription.subscriptionType === 'yearly'
+    ? 'Jahresabo'
+    : subscription.subscriptionType === 'one-time'
+    ? 'Einzellauf'
+    : 'Kein Abonnement';
+
+  const subscriptionExpiry = subscription.expiresAt 
+    ? subscription.expiresAt.toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })
+    : null;
+
   return (
     <ProtectedRoute>
       <section className="page-section">
@@ -51,18 +62,32 @@ export default function DashboardPage() {
           <div className="account-grid">
             <div className="account-card">
               <p className="account-card-title">Abonnement</p>
-              <div className="beta-status">
+              <div className={`beta-status ${subscription.hasActiveSubscription ? '' : 'beta-status-warning'}`}>
                 <span className="beta-dot" />
                 <div>
-                  <p className="beta-status-title">Monatsabo aktiv</p>
-                  <p className="beta-status-description">Verlängert sich am 01. Juni automatisch.</p>
+                  <p className="beta-status-title">
+                    {subscription.hasActiveSubscription ? `${subscriptionTypeLabel} aktiv` : 'Kein aktives Abonnement'}
+                  </p>
+                  <p className="beta-status-description">
+                    {subscription.hasActiveSubscription && subscriptionExpiry
+                      ? `Verlängert sich am ${subscriptionExpiry} automatisch.`
+                      : subscription.hasActiveSubscription
+                      ? 'Aktiv'
+                      : 'Bitte ein Abonnement abschließen.'}
+                  </p>
                 </div>
               </div>
               <p className="account-info-label">Lizenzumfang</p>
-              <p className="account-info-value">Unbegrenzte Korrekturen &amp; Exporte</p>
+              <p className="account-info-value">
+                {subscription.hasActiveSubscription 
+                  ? subscription.subscriptionType === 'one-time'
+                    ? 'Einzellauf (30 Tage gültig)'
+                    : 'Unbegrenzte Korrekturen &amp; Exporte'
+                  : 'Kein Zugriff'}
+              </p>
               <div className="cta-actions">
                 <Link href="/checkout" className="secondary-button">
-                  <span>Plan ändern</span>
+                  <span>{subscription.hasActiveSubscription ? 'Plan ändern' : 'Abonnement wählen'}</span>
                 </Link>
                 <Link href="/correction" className="primary-button">
                   <span>Neue Korrektur</span>
@@ -98,17 +123,26 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="dashboard-table">
-              {recentCorrections.map((item) => (
-                <div key={item.subject} className="dashboard-table-row">
-                  <div>
-                    <p className="dashboard-table-title">{item.subject}</p>
-                    <p className="dashboard-table-subtitle">
-                      Thema: {item.topic} · {item.date}
-                    </p>
+              {stats.recentCorrections.length > 0 ? (
+                stats.recentCorrections.map((item) => (
+                  <div key={item.id} className="dashboard-table-row">
+                    <div>
+                      <p className="dashboard-table-title">{item.subject}</p>
+                      <p className="dashboard-table-subtitle">
+                        Thema: {item.topic} · {item.date}
+                      </p>
+                    </div>
+                    <span className="dashboard-table-chip">{item.students} Arbeiten</span>
                   </div>
-                  <span className="dashboard-table-chip">{item.students} Arbeiten</span>
+                ))
+              ) : (
+                <div className="dashboard-table-row">
+                  <div>
+                    <p className="dashboard-table-title">Noch keine Korrekturen</p>
+                    <p className="dashboard-table-subtitle">Starte deine erste Korrektur im Upload-Bereich.</p>
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
