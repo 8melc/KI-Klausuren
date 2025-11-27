@@ -40,7 +40,8 @@ export async function POST(req: Request) {
     }
 
     // Prüfe ob Price ID konfiguriert ist
-    if (!process.env.STRIPE_PRICE_ID_25) {
+    const priceId = process.env.STRIPE_PRICE_ID_25
+    if (!priceId) {
       if (process.env.NODE_ENV === 'development') {
         console.error('STRIPE_PRICE_ID_25 ist nicht konfiguriert')
       }
@@ -51,9 +52,8 @@ export async function POST(req: Request) {
     }
 
     // Prüfe ob NEXT_PUBLIC_URL konfiguriert ist
-    const baseUrl = process.env.NEXT_PUBLIC_URL || process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000'
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       mode: 'payment',
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID_25,
+          price: priceId,
           quantity: 1,
         },
       ],
