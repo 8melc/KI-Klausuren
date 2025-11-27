@@ -1,40 +1,59 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await req.json()
+    // Hole eingeloggten User aus Supabase Auth
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
-    if (!userId) {
+    if (authError) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Auth error:', authError)
+      }
       return NextResponse.json(
-        { error: 'userId ist erforderlich' },
-        { status: 400 }
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
       )
     }
 
     // Prüfe ob Stripe Secret Key konfiguriert ist
     if (!process.env.STRIPE_SECRET_KEY) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('STRIPE_SECRET_KEY ist nicht konfiguriert')
+      }
       return NextResponse.json(
-        { error: 'STRIPE_SECRET_KEY ist nicht konfiguriert' },
+        { error: 'Server-Konfigurationsfehler' },
         { status: 500 }
       )
     }
 
     // Prüfe ob Price ID konfiguriert ist
     if (!process.env.STRIPE_PRICE_ID_25) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('STRIPE_PRICE_ID_25 ist nicht konfiguriert')
+      }
       return NextResponse.json(
-        { error: 'STRIPE_PRICE_ID_25 ist nicht konfiguriert' },
+        { error: 'Server-Konfigurationsfehler' },
         { status: 500 }
       )
     }
 
     // Prüfe ob NEXT_PUBLIC_URL konfiguriert ist
-    if (!process.env.NEXT_PUBLIC_URL) {
-      return NextResponse.json(
-        { error: 'NEXT_PUBLIC_URL ist nicht konfiguriert' },
-        { status: 500 }
-      )
-    }
+    const baseUrl = process.env.NEXT_PUBLIC_URL || process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000'
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
@@ -42,25 +61,25 @@ export async function POST(req: Request) {
       mode: 'payment',
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID_25, // PriceID des 25er Pakets
+          price: process.env.STRIPE_PRICE_ID_25,
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_URL}/checkout/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_URL}/checkout/cancel`,
+      success_url: `${baseUrl}/dashboard`,
+      cancel_url: `${baseUrl}/dashboard`,
       metadata: {
-        userId,
-        type: 'CREDITS_25',
+        userId: user.id,
       },
     })
 
     return NextResponse.json({ url: session.url })
   } catch (error) {
-    console.error('Stripe checkout error:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Stripe checkout error:', error)
+    }
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : 'Checkout-Session konnte nicht erstellt werden',
+        error: 'Checkout-Session konnte nicht erstellt werden',
       },
       { status: 500 }
     )

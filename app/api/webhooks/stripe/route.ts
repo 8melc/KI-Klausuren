@@ -27,15 +27,16 @@ export async function POST(req: Request) {
   const sig = req.headers.get('stripe-signature')
 
   if (!sig) {
-    return NextResponse.json({ error: 'Keine Signatur' }, { status: 400 })
+    // Webhook muss immer 200 zurückgeben, auch bei Fehlern
+    return NextResponse.json({ received: false, error: 'Keine Signatur' }, { status: 200 })
   }
 
   // Prüfe ob Webhook Secret konfiguriert ist
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
-    return NextResponse.json(
-      { error: 'STRIPE_WEBHOOK_SECRET ist nicht konfiguriert' },
-      { status: 500 }
-    )
+    if (process.env.NODE_ENV === 'development') {
+      console.error('STRIPE_WEBHOOK_SECRET ist nicht konfiguriert')
+    }
+    return NextResponse.json({ received: false, error: 'Webhook Secret fehlt' }, { status: 200 })
   }
 
   let event: Stripe.Event
@@ -47,40 +48,48 @@ export async function POST(req: Request) {
       process.env.STRIPE_WEBHOOK_SECRET
     )
   } catch (err: any) {
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+    // Webhook muss immer 200 zurückgeben, auch bei ungültiger Signatur
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Invalid webhook signature:', err.message)
+    }
+    return NextResponse.json({ received: false, error: 'Invalid signature' }, { status: 200 })
   }
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const userId = session.metadata?.userId
-    const credits = parseInt(session.metadata?.credits || '25')
 
     if (!userId) {
-      console.warn('Webhook: Keine userId in session.metadata')
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Webhook: Keine userId in session.metadata')
+      }
+      // Webhook muss immer 200 zurückgeben
       return NextResponse.json({ received: true })
     }
 
     try {
       const { error } = await supabase.rpc('add_credits', {
         user_id: userId,
-        amount: credits,
+        amount: 25,
       })
 
       if (error) {
-        console.error('Error adding credits:', error)
-        return NextResponse.json(
-          { error: 'Fehler beim Hinzufügen der Credits' },
-          { status: 500 }
-        )
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error adding credits:', error)
+        }
+        // Webhook muss immer 200 zurückgeben, auch bei Fehlern
+        return NextResponse.json({ received: true, error: 'Fehler beim Hinzufügen der Credits' }, { status: 200 })
       }
 
-      console.log(`Added ${credits} credits to user ${userId} after payment`)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Added 25 credits to user ${userId} after payment`)
+      }
     } catch (error) {
-      console.error('Unexpected error in webhook:', error)
-      return NextResponse.json(
-        { error: 'Unerwarteter Fehler beim Verarbeiten des Webhooks' },
-        { status: 500 }
-      )
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Unexpected error in webhook:', error)
+      }
+      // Webhook muss immer 200 zurückgeben
+      return NextResponse.json({ received: true, error: 'Unerwarteter Fehler' }, { status: 200 })
     }
   }
 
