@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import { buyCredits } from '@/lib/buy-credits'
 
 interface PricingPlan {
   id: string
@@ -113,8 +114,27 @@ export default function CheckoutPage() {
     fetchPrices()
   }, [])
 
-  const handleCheckout = async (priceId: string, mode: 'subscription' | 'payment') => {
-    setLoading(priceId)
+  const handleBuyCredits = async () => {
+    setLoading('package-25')
+
+    try {
+      await buyCredits()
+    } catch (error) {
+      console.error('Checkout error:', error)
+      alert(error instanceof Error ? error.message : 'Fehler beim Erstellen der Checkout-Session')
+      setLoading(null)
+    }
+  }
+
+  const handleCheckout = async (priceId: string, mode: 'subscription' | 'payment', planId?: string) => {
+    // Für das 25er-Paket verwende die neue buyCredits Funktion
+    if (planId === 'package-25') {
+      await handleBuyCredits()
+      return
+    }
+
+    // Für andere Pakete: Alte Route (falls noch benötigt)
+    setLoading(priceId || 'unknown')
 
     try {
       const response = await fetch('/api/stripe/checkout', {
@@ -199,15 +219,21 @@ export default function CheckoutPage() {
                   ))}
                 </ul>
                 <button
-                  onClick={() => handleCheckout(plan.priceId, plan.mode)}
-                  disabled={loading === plan.priceId}
+                  onClick={() => {
+                    if (plan.id === 'package-25') {
+                      handleBuyCredits()
+                    } else {
+                      handleCheckout(plan.priceId, plan.mode, plan.id)
+                    }
+                  }}
+                  disabled={loading === plan.id || loading === plan.priceId}
                   className={`w-full px-4 py-2 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
                     plan.popular
                       ? 'bg-blue-600 text-white hover:bg-blue-700'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                   }`}
                 >
-                  {loading === plan.priceId
+                  {loading === plan.id || loading === plan.priceId
                     ? 'Wird geladen...'
                     : plan.mode === 'payment'
                       ? 'Jetzt kaufen'

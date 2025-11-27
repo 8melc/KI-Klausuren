@@ -1,20 +1,43 @@
 'use client';
 
 import { KlausurAnalyse } from '@/lib/openai';
-import { getGradeInfo } from '@/lib/grades';
+import { getGradeInfo, getPerformanceLevel, gradeColor } from '@/lib/grades';
 import { downloadAnalysisDoc } from '@/lib/downloadDoc';
+import { mapToParsedAnalysis } from '@/types/analysis';
+import { renderTeacherResultSection } from '@/lib/renderers/teacher-renderer';
 
 interface ResultCardProps {
   analysis: KlausurAnalyse;
   klausurName?: string;
   anchorId?: string;
+  courseInfo?: {
+    subject?: string;
+    gradeLevel?: string;
+    className?: string;
+    schoolYear?: string;
+  };
 }
 
-export default function ResultCard({ analysis, klausurName, anchorId }: ResultCardProps) {
+export default function ResultCard({ analysis, klausurName, anchorId, courseInfo }: ResultCardProps) {
   const name = klausurName || 'Klausur';
-  const grade = getGradeInfo(analysis.prozent);
+  const percentage = analysis.prozent;
+  const gradeLevel = courseInfo?.gradeLevel ? parseInt(courseInfo.gradeLevel, 10) || 10 : 10;
+  const gradeInfo = getGradeInfo({ prozent: percentage, gradeLevel });
+  const grade = gradeInfo.label;
+  const performanceLevel = getPerformanceLevel(percentage);
 
-  const handleDownload = () => downloadAnalysisDoc(name, analysis);
+  // Konvertiere zu ParsedAnalysis und rendere für Lehrer
+  const parsedAnalysis = mapToParsedAnalysis(analysis, grade);
+  const teacherView = renderTeacherResultSection(parsedAnalysis);
+
+  const handleDownload = () => {
+    downloadAnalysisDoc(name, analysis, courseInfo ? {
+      subject: courseInfo.subject || '',
+      gradeLevel: courseInfo.gradeLevel || '',
+      className: courseInfo.className || '',
+      schoolYear: courseInfo.schoolYear || '',
+    } : undefined);
+  };
 
   return (
     <article className="teacher-card" id={anchorId}>
@@ -25,53 +48,92 @@ export default function ResultCard({ analysis, klausurName, anchorId }: ResultCa
           <p className="teacher-card__note">Bewertung auf Basis des Erwartungshorizonts</p>
         </div>
         <div className="teacher-card__grade-box">
-          <span className={`grade-badge grade-badge-large ${grade.badgeClass}`}>{grade.label}</span>
+          <span className={`grade-badge grade-badge-large ${gradeInfo.badgeClass}`}>{grade}</span>
           <p className="teacher-card__points">
-            {analysis.erreichtePunkte} / {analysis.gesamtpunkte} Punkte
+            {teacherView.overall.points} Punkte
           </p>
-          <p className="teacher-card__percentage">{analysis.prozent.toFixed(1)}%</p>
+          <p className="teacher-card__percentage">{teacherView.overall.percentage.toFixed(1)}%</p>
         </div>
       </header>
 
       <section className="teacher-card__summary">
-        <h4>Gesamteinschätzung</h4>
-        <p>{analysis.zusammenfassung || 'Keine zusammenfassende Bewertung hinterlegt.'}</p>
+        <h4>Zusammenfassung</h4>
+        {teacherView.summary.strengths.length > 0 && (
+          <div className="summary-section summary-section--strengths">
+            <h5 className="summary-section__title">Stärken</h5>
+            <ul className="teacher-task-list">
+              {teacherView.summary.strengths.map((strength, idx) => (
+                <li key={idx}>{strength}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {teacherView.summary.developmentAreas.length > 0 && (
+          <div className="summary-section summary-section--development">
+            <h5 className="summary-section__title">Entwicklungsbereiche</h5>
+            <ul className="teacher-task-list">
+              {teacherView.summary.developmentAreas.map((area, idx) => (
+                <li key={idx}>{area}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {teacherView.summary.overallSummary && (
+          <p style={{ marginTop: 'var(--spacing-md)' }}>{teacherView.summary.overallSummary}</p>
+        )}
       </section>
 
       <section className="teacher-card__tasks">
         <h4>Detailanalyse der Aufgaben</h4>
-        {analysis.aufgaben.map((aufgabe, index) => (
-          <div className="teacher-task-card" key={`${aufgabe.aufgabe}-${index}`}>
+        {teacherView.tasks.map((task, index) => (
+          <div className="teacher-task-card" key={`${task.taskId}-${index}`}>
             <div className="teacher-task-card__header">
               <div>
                 <p className="teacher-task-card__label">Aufgabe</p>
-                <p className="teacher-task-card__title">{aufgabe.aufgabe}</p>
+                <p className="teacher-task-card__title">{task.taskTitle}</p>
               </div>
               <div className="teacher-task-card__score">
-                <span>{aufgabe.erreichtePunkte}</span>
-                <small>von {aufgabe.maxPunkte}</small>
+                <span>{task.points.split('/')[0]}</span>
+                <small>von {task.points.split('/')[1]}</small>
               </div>
             </div>
             <div className="teacher-task-card__body">
-              <div className="teacher-task-section">
-                <p className="teacher-task-section__title">Kurzbewertung</p>
-                <p>{aufgabe.kommentar || 'Keine Bewertung vorhanden.'}</p>
-              </div>
-              <div className="teacher-task-section teacher-task-section--muted">
-                <p className="teacher-task-section__title">Punktebegründung</p>
-                <p>
-                  Erreichte Punkte: {aufgabe.erreichtePunkte} von {aufgabe.maxPunkte}.{' '}
-                  {aufgabe.erreichtePunkte === aufgabe.maxPunkte
-                    ? 'Alle Teilschritte erfüllt.'
-                    : 'Es bestehen noch offene Aspekte laut Erwartungshorizont.'}
-                </p>
-              </div>
-              {aufgabe.korrekturen && aufgabe.korrekturen.length > 0 && (
-                <div className="teacher-task-section teacher-task-section--warning">
-                  <p className="teacher-task-section__title">Hinweise für Korrektur und Förderung</p>
+              {task.correctAspects.length > 0 && (
+                <div className="teacher-task-section teacher-task-section--neutral">
+                  <p className="teacher-task-section__title">Korrekte Aspekte</p>
                   <ul className="teacher-task-list">
-                    {aufgabe.korrekturen.map((korrektur, correctionIndex) => (
-                      <li key={`${korrektur}-${correctionIndex}`}>{korrektur}</li>
+                    {task.correctAspects.map((aspect, idx) => (
+                      <li key={idx}>{aspect}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {task.deductions.length > 0 && (
+                <div className="teacher-task-section teacher-task-section--neutral">
+                  <p className="teacher-task-section__title">Punkteabzug</p>
+                  <ul className="teacher-task-list">
+                    {task.deductions.map((deduction, idx) => (
+                      <li key={idx}>{deduction}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {task.improvementHints.length > 0 && (
+                <div className="teacher-task-section teacher-task-section--neutral">
+                  <p className="teacher-task-section__title">Hinweis für Förderung</p>
+                  <ul className="teacher-task-list">
+                    {task.improvementHints.map((hint, idx) => (
+                      <li key={idx}>{hint}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {task.corrections.length > 0 && (
+                <div className="teacher-task-section teacher-task-section--corrections">
+                  <p className="teacher-task-section__title">Korrekturen</p>
+                  <ul className="teacher-task-list">
+                    {task.corrections.map((correction, idx) => (
+                      <li key={idx}>{correction}</li>
                     ))}
                   </ul>
                 </div>

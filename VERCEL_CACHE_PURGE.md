@@ -69,3 +69,4 @@ Nach dem Cache-Löschen sollte:
    - Settings → Git → Disconnect
    - Dann neu verbinden mit `8melc/KI-Klausuren`
 
+

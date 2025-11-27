@@ -265,3 +265,4 @@ Nach erfolgreichem Deployment:
 - **Environment Variables:** Können pro Environment unterschiedlich sein
 - **Build Logs:** Immer in Vercel Dashboard einsehbar
 
+

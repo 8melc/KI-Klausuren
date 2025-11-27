@@ -15,6 +15,7 @@ export default function AppFooter() {
             <a href="mailto:kontakt@korrekturpilot.de">kontakt@korrekturpilot.de</a>
             <Link href="/checkout">Preise &amp; Lizenzen</Link>
             <Link href="/results">Beispielauswertung</Link>
+            <Link href="/impressum">Impressum</Link>
           </div>
         </div>
       </div>

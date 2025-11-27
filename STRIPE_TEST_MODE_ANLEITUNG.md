@@ -140,3 +140,4 @@ Siehe: [Stripe Test Cards](https://stripe.com/docs/testing)
 - Keine Gebühren
 - Perfekt zum Testen der Integration
 
+

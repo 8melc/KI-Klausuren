@@ -171,3 +171,4 @@ Nach dem Deployment kannst du prüfen:
 - [ ] Alle Variablen für alle Environments gesetzt (Production, Preview, Development)
 - [ ] Neues Deployment gestartet
 
+

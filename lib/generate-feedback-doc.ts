@@ -1,133 +1,523 @@
-import { Document, HeadingLevel, Paragraph, TextRun, Packer } from 'docx';
+import { Document, HeadingLevel, Paragraph, TextRun, Packer, Table, TableRow, TableCell, WidthType, AlignmentType, SectionType } from 'docx';
 import { KlausurAnalyse } from './openai';
+import { getGradeInfo, getPerformanceLevel } from './grades';
+import { mapToParsedAnalysis } from '@/types/analysis';
+import { renderAndPolishStudentDocSections } from './renderers/student-renderer';
+import { getDistributionConfig, calculatePercentage } from './analysis/strength-nextsteps-distribution';
+import { mapToUniversalAnalysis } from './analysis/mapper';
+import { renderForStudent } from './analysis/controller';
 
 interface GenerateFeedbackDocInput {
   klausurName: string;
   analysis: KlausurAnalyse;
+  courseInfo?: {
+    subject?: string;
+    gradeLevel?: string;
+    className?: string;
+    schoolYear?: string;
+  };
 }
 
-const defaultMargin = 1440; // 1 inch in twips (~2.54cm)
+// Seitenränder: 2,5 cm oben/unten, 2 cm links/rechts
+// 1 cm = 567 twips, 2,5 cm = 1417.5 twips, 2 cm = 1134 twips
+const topBottomMargin = 1418; // 2,5 cm
+const leftRightMargin = 1134; // 2 cm
+
+// Schriftgrößen
+const fontSizeTitle = 20; // pt
+const fontSizeHeading = 12; // pt (Detailanalyse Überschrift)
+const fontSizeBody = 11; // pt
+
+// Zeilenabstand: 1,15
+const lineSpacing = 276; // 1,15 = 276 twips (240 * 1.15)
 
 export async function generateFeedbackDoc(input: GenerateFeedbackDocInput): Promise<Buffer> {
-  const { klausurName, analysis } = input;
+  const { klausurName, analysis, courseInfo } = input;
+  
+  // ========== NEUE PIPELINE ==========
+  
+  const percentage = (analysis.erreichtePunkte / analysis.gesamtpunkte) * 100;
+  const gradeLevel = courseInfo?.gradeLevel ? parseInt(courseInfo.gradeLevel, 10) || 10 : 10;
+  const gradeInfo = getGradeInfo({ prozent: percentage, gradeLevel });
+  const grade = gradeInfo.label;
+  const performanceLevel = getPerformanceLevel(percentage);
+  
+  const universal = mapToUniversalAnalysis(analysis, {
+    studentName: klausurName,
+    className: courseInfo?.className || "",
+    subject: courseInfo?.subject || "",
+    schoolYear: courseInfo?.schoolYear || "",
+    gradeLevel: gradeLevel,
+  });
 
-  const paragraphs: Paragraph[] = [];
+  let studentStrengthsAndSteps: { strengths: string[]; nextSteps: string[] };
 
-  paragraphs.push(
+  try {
+    studentStrengthsAndSteps = await renderForStudent(universal);
+  } catch (e) {
+    console.warn("AI student renderer failed. Using fallback", e);
+    const parsed = mapToParsedAnalysis(analysis, grade);
+    const fallbackView = await renderAndPolishStudentDocSections(parsed, gradeLevel);
+    studentStrengthsAndSteps = {
+      strengths: fallbackView.summary.yourStrengths,
+      nextSteps: fallbackView.summary.yourNextSteps,
+    };
+  }
+
+  // Task-Details weiterhin über alten Renderer
+  const parsed = mapToParsedAnalysis(analysis, grade);
+  const studentView = await renderAndPolishStudentDocSections(parsed, gradeLevel);
+
+  const finalStudentView = {
+    ...studentView,
+    summary: {
+      ...studentView.summary,
+      yourStrengths: studentStrengthsAndSteps.strengths,
+      yourNextSteps: studentStrengthsAndSteps.nextSteps,
+    },
+  };
+
+  // ========== SEITE 1 ==========
+  const page1Children: (Paragraph | Table)[] = [];
+
+  // Titel (20 pt, zentriert)
+  page1Children.push(
     new Paragraph({
-      text: 'Klausurbewertung',
-      heading: HeadingLevel.TITLE,
+      children: [
+        new TextRun({
+          text: 'Klausurbewertung',
+          size: fontSizeTitle * 2, // docx verwendet halbe Punkte
+          bold: true,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 400 },
+    }),
+  );
+
+  // Metadaten (11 pt, Calibri)
+  page1Children.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: 'Schüler/in: ', bold: true, size: fontSizeBody * 2 }),
+        new TextRun({ text: klausurName, size: fontSizeBody * 2 }),
+      ],
+      spacing: { after: 80 },
+    }),
+  );
+
+  if (courseInfo?.className) {
+    page1Children.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: 'Klasse: ', bold: true, size: fontSizeBody * 2 }),
+          new TextRun({ text: courseInfo.className, size: fontSizeBody * 2 }),
+        ],
+        spacing: { after: 80 },
+      }),
+    );
+  }
+
+  if (courseInfo?.subject) {
+    page1Children.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: 'Fach: ', bold: true, size: fontSizeBody * 2 }),
+          new TextRun({ text: courseInfo.subject, size: fontSizeBody * 2 }),
+        ],
+        spacing: { after: 80 },
+      }),
+    );
+  }
+
+  page1Children.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: 'Datum: ', bold: true, size: fontSizeBody * 2 }),
+        new TextRun({ text: new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }), size: fontSizeBody * 2 }),
+      ],
+      spacing: { after: 80 },
+    }),
+  );
+
+  if (courseInfo?.subject && courseInfo?.gradeLevel) {
+    page1Children.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: 'Thema: ', bold: true, size: fontSizeBody * 2 }),
+          new TextRun({ text: `${courseInfo.subject} - Jahrgang ${courseInfo.gradeLevel}`, size: fontSizeBody * 2 }),
+        ],
+        spacing: { after: 200 },
+      }),
+    );
+  }
+
+  // Punkte-Tabelle (Note/Punkte) - Header NICHT fett, aber zentriert
+  const summaryTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [new Paragraph({ 
+              children: [new TextRun({ text: 'Erreichte Punkte', size: fontSizeBody * 2 })],
+              alignment: AlignmentType.CENTER 
+            })],
+            width: { size: 33.33, type: WidthType.PERCENTAGE },
+          }),
+          new TableCell({
+            children: [new Paragraph({ 
+              children: [new TextRun({ text: 'Maximalpunkte', size: fontSizeBody * 2 })],
+              alignment: AlignmentType.CENTER 
+            })],
+            width: { size: 33.33, type: WidthType.PERCENTAGE },
+          }),
+          new TableCell({
+            children: [new Paragraph({ 
+              children: [new TextRun({ text: 'Note', size: fontSizeBody * 2 })],
+              alignment: AlignmentType.CENTER 
+            })],
+            width: { size: 33.33, type: WidthType.PERCENTAGE },
+          }),
+        ],
+      }),
+      new TableRow({
+        children: [
+              new TableCell({
+                children: [new Paragraph({ 
+                  children: [new TextRun({ text: studentView.overall.points.split('/')[0], size: fontSizeBody * 2 })],
+                  alignment: AlignmentType.CENTER 
+                })],
+              }),
+              new TableCell({
+                children: [new Paragraph({ 
+                  children: [new TextRun({ text: studentView.overall.points.split('/')[1], size: fontSizeBody * 2 })],
+                  alignment: AlignmentType.CENTER 
+                })],
+              }),
+              new TableCell({
+                children: [new Paragraph({ 
+                  children: [new TextRun({ text: grade, size: fontSizeBody * 2 })],
+                  alignment: AlignmentType.CENTER 
+                })],
+              }),
+        ],
+      }),
+    ],
+  });
+
+  page1Children.push(summaryTable);
+  page1Children.push(new Paragraph({ text: '', spacing: { after: 300 } }));
+
+  // NEU: Punkte-Tabelle mit allen Aufgaben (Schüler-Version)
+  const tasksPointsTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [new Paragraph({ 
+              children: [new TextRun({ text: 'Aufgabe', size: fontSizeBody * 2 })],
+              alignment: AlignmentType.CENTER 
+            })],
+            width: { size: 50, type: WidthType.PERCENTAGE },
+          }),
+          new TableCell({
+            children: [new Paragraph({ 
+              children: [new TextRun({ text: 'Punkte', size: fontSizeBody * 2 })],
+              alignment: AlignmentType.CENTER 
+            })],
+            width: { size: 50, type: WidthType.PERCENTAGE },
+          }),
+        ],
+      }),
+      ...finalStudentView.tasks.map((task) =>
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [new Paragraph({ 
+                children: [new TextRun({ text: task.taskTitle, size: fontSizeBody * 2 })],
+                alignment: AlignmentType.LEFT 
+              })],
+            }),
+            new TableCell({
+              children: [new Paragraph({ 
+                children: [new TextRun({ text: `${task.points} Punkte`, size: fontSizeBody * 2 })],
+                alignment: AlignmentType.CENTER 
+              })],
+            }),
+          ],
+        })
+      ),
+    ],
+  });
+
+  page1Children.push(tasksPointsTable);
+  page1Children.push(new Paragraph({ text: '', spacing: { after: 300 } }));
+
+  // Berechne relative Leistung für Verteilungslogik
+  const distributionConfig = getDistributionConfig(percentage);
+
+  // Verwende die AI-generierten Stärken/Nächste Schritte (Du-Form, motivierend)
+  let strengthsPoints = finalStudentView.summary.yourStrengths.length > 0 
+    ? finalStudentView.summary.yourStrengths 
+    : ['Du hast die Aufgabenstellung grundlegend verstanden.'];
+  
+  let tipsPoints = finalStudentView.summary.yourNextSteps.length > 0 
+    ? finalStudentView.summary.yourNextSteps 
+    : [];
+
+  // Korrigiere falls Verteilung nicht passt
+  if (strengthsPoints.length < distributionConfig.strengthsCount.min) {
+    // Ergänze aus verfügbaren Daten
+    const additional = ['Du hast die Aufgabenstellung grundlegend verstanden.'];
+    strengthsPoints = [...strengthsPoints, ...additional].slice(0, distributionConfig.strengthsCount.max);
+  }
+  if (strengthsPoints.length > distributionConfig.strengthsCount.max) {
+    strengthsPoints = strengthsPoints.slice(0, distributionConfig.strengthsCount.max);
+  }
+
+  if (tipsPoints.length < distributionConfig.nextStepsCount.min) {
+    // Ergänze aus verfügbaren Daten
+    const additional = ['Wiederhole die wichtigsten Fachbegriffe zu diesem Thema.'];
+    tipsPoints = [...tipsPoints, ...additional].slice(0, distributionConfig.nextStepsCount.max);
+  }
+  if (tipsPoints.length > distributionConfig.nextStepsCount.max) {
+    tipsPoints = tipsPoints.slice(0, distributionConfig.nextStepsCount.max);
+  }
+
+  // Stelle sicher, dass mindestens die Mindestanzahl vorhanden ist
+  if (strengthsPoints.length === 0) {
+    strengthsPoints = ['Du hast die Aufgabenstellung grundlegend verstanden.'];
+  }
+  if (tipsPoints.length === 0) {
+    tipsPoints = ['Wiederhole die wichtigsten Fachbegriffe zu diesem Thema.'];
+  }
+
+  const strengthsTipsTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [new TextRun({ text: 'DEINE STÄRKEN', size: fontSizeHeading * 2, bold: true })],
+                alignment: AlignmentType.CENTER,
+              }),
+              ...strengthsPoints.map(
+                (item) =>
+                  new Paragraph({
+                    children: [new TextRun({ text: `• ${item}`, size: fontSizeBody * 2 })],
+                    spacing: { after: 80 },
+                  })
+              ),
+            ],
+            width: { size: 50, type: WidthType.PERCENTAGE },
+            shading: { fill: 'F5F5F5' },
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [new TextRun({ text: 'DEINE NÄCHSTEN SCHRITTE', size: fontSizeHeading * 2, bold: true })],
+                alignment: AlignmentType.CENTER,
+              }),
+              ...(tipsPoints.length > 0
+                ? tipsPoints.map(
+                    (item) =>
+                      new Paragraph({
+                        children: [new TextRun({ text: `• ${item}`, size: fontSizeBody * 2 })],
+                        spacing: { after: 80 },
+                      })
+                  )
+                : [
+                    new Paragraph({
+                      children: [new TextRun({ text: 'Du bist auf einem guten Weg!', size: fontSizeBody * 2 })],
+                    }),
+                  ]),
+            ],
+            width: { size: 50, type: WidthType.PERCENTAGE },
+            shading: { fill: 'F5F5F5' },
+          }),
+        ],
+      }),
+    ],
+  });
+
+  page1Children.push(strengthsTipsTable);
+
+  // ========== SEITE 2+ (Detailanalyse) ==========
+  const page2Children: (Paragraph | Table)[] = [];
+
+  // Überschrift "Detailanalyse"
+  page2Children.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Detailanalyse',
+          size: fontSizeHeading * 2,
+          bold: true,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
       spacing: { after: 300 },
     }),
   );
 
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({ text: 'Klausur: ', bold: true }),
-        new TextRun(klausurName),
-      ],
-      spacing: { after: 120 },
-    }),
-  );
-
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({ text: 'Gesamtpunkte: ', bold: true }),
-        new TextRun(`${analysis.erreichtePunkte} / ${analysis.gesamtpunkte}`),
-      ],
-      spacing: { after: 80 },
-    }),
-  );
-
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({ text: 'Prozent: ', bold: true }),
-        new TextRun(`${analysis.prozent.toFixed(1)}%`),
-      ],
-      spacing: { after: 80 },
-    }),
-  );
-
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({ text: 'Zusammenfassung', bold: true, break: 1 }),
-      ],
-      spacing: { before: 200, after: 120 },
-    }),
-  );
-
-  paragraphs.push(
-    new Paragraph({
-      text: analysis.zusammenfassung,
-      spacing: { after: 200 },
-    }),
-  );
-
-  paragraphs.push(
-    new Paragraph({
-      text: 'Aufgaben-Details',
-      heading: HeadingLevel.HEADING_1,
-      spacing: { before: 200, after: 200 },
-    }),
-  );
-
-  analysis.aufgaben.forEach((aufgabe, index) => {
-    paragraphs.push(
+  // Aufgaben-Details (Schüler-Version: Du-Form, motivierend)
+  finalStudentView.tasks.forEach((task) => {
+    // Aufgaben-Überschrift (12 pt, fett) - KEINE Nummerierung, da Aufgabenformat schon Nummer hat
+    page2Children.push(
       new Paragraph({
-        text: `${index + 1}. ${aufgabe.aufgabe} (${aufgabe.erreichtePunkte}/${aufgabe.maxPunkte} Punkte)`,
-        heading: HeadingLevel.HEADING_2,
-        spacing: { before: 200, after: 80 },
+        children: [
+          new TextRun({
+            text: `${task.taskTitle} (${task.points} Punkte)`,
+            size: fontSizeHeading * 2,
+            bold: true,
+          }),
+        ],
+        spacing: { before: 200, after: 120 },
       }),
     );
 
-    paragraphs.push(
-      new Paragraph({
-        text: aufgabe.kommentar,
-        spacing: { after: 80 },
-      }),
-    );
-
-    if (aufgabe.korrekturen && aufgabe.korrekturen.length > 0) {
-      paragraphs.push(
+    // Was du richtig gemacht hast (Du-Form, motivierend, EINGERÜCKT)
+    if (task.whatYouDidWell.length > 0) {
+      page2Children.push(
         new Paragraph({
-          children: [new TextRun({ text: 'Korrekturen:', bold: true })],
+          children: [
+            new TextRun({ text: 'Das war richtig: ', bold: true, size: fontSizeBody * 2 }),
+          ],
           spacing: { after: 80 },
+          indent: { left: 360 },
         }),
       );
-
-      aufgabe.korrekturen.forEach((korrektur) => {
-        paragraphs.push(
+      task.whatYouDidWell.forEach((item) => {
+        page2Children.push(
           new Paragraph({
-            text: korrektur,
-            bullet: { level: 0 },
+            children: [new TextRun({ text: item, size: fontSizeBody * 2 })],
+            spacing: { after: 60 },
+            indent: { left: 360 },
           }),
         );
       });
-
-      paragraphs.push(new Paragraph({ text: '', spacing: { after: 80 } }));
     }
+
+    // Was verbessert werden kann (Du-Form, freundlich, EINGERÜCKT)
+    if (task.whatNeedsImprovement.length > 0) {
+      page2Children.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'Hier kannst du noch verbessern: ', bold: true, size: fontSizeBody * 2 }),
+          ],
+          spacing: { after: 80, before: 120 },
+          indent: { left: 360 },
+        }),
+      );
+      task.whatNeedsImprovement.forEach((item) => {
+        page2Children.push(
+          new Paragraph({
+            children: [new TextRun({ text: item, size: fontSizeBody * 2 })],
+            spacing: { after: 60 },
+            indent: { left: 360 },
+          }),
+        );
+      });
+    }
+
+    // Tipps für dich (Du-Form, motivierend, EINGERÜCKT)
+    if (task.tipsForYou.length > 0) {
+      page2Children.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'Tipp für dich: ', bold: true, size: fontSizeBody * 2 }),
+          ],
+          spacing: { after: 80, before: 120 },
+          indent: { left: 360 },
+        }),
+      );
+      task.tipsForYou.forEach((item) => {
+        page2Children.push(
+          new Paragraph({
+            children: [new TextRun({ text: item, size: fontSizeBody * 2 })],
+            spacing: { after: 60 },
+            indent: { left: 360 },
+          }),
+        );
+      });
+    }
+
+    // Korrekturen (Du-Form, freundlich)
+    if (task.corrections.length > 0) {
+      page2Children.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'Korrekturen: ', bold: true, size: fontSizeBody * 2 }),
+          ],
+          spacing: { after: 80, before: 120 },
+        }),
+      );
+
+      task.corrections.forEach((korrektur) => {
+        page2Children.push(
+          new Paragraph({
+            children: [new TextRun({ text: korrektur, size: fontSizeBody * 2 })],
+            bullet: { level: 0 },
+            spacing: { after: 60 },
+          }),
+        );
+      });
+    }
+
+    page2Children.push(new Paragraph({ text: '', spacing: { after: 200 } }));
   });
 
   const doc = new Document({
     sections: [
       {
+        // Seite 1
         properties: {
           page: {
             margin: {
-              top: defaultMargin,
-              bottom: defaultMargin,
-              left: defaultMargin,
-              right: defaultMargin,
+              top: topBottomMargin,
+              bottom: topBottomMargin,
+              left: leftRightMargin,
+              right: leftRightMargin,
             },
           },
         },
-        children: paragraphs,
+        children: page1Children,
+      },
+      {
+        // Seite 2+ (Detailanalyse)
+        properties: {
+          page: {
+            margin: {
+              top: topBottomMargin,
+              bottom: topBottomMargin,
+              left: leftRightMargin,
+              right: leftRightMargin,
+            },
+          },
+          type: SectionType.NEXT_PAGE, // Seitenumbruch
+        },
+        children: page2Children,
       },
     ],
+    styles: {
+      default: {
+        document: {
+          run: {
+            font: 'Calibri',
+            size: fontSizeBody * 2,
+          },
+          paragraph: {
+            spacing: {
+              line: lineSpacing,
+            },
+          },
+        },
+      },
+    },
   });
 
   const buffer = await Packer.toBuffer(doc);

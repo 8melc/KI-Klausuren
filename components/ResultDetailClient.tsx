@@ -2,10 +2,10 @@
 
 import { useMemo } from 'react';
 import TeacherFeedbackDocument from '@/components/TeacherFeedbackDocument';
-import { RawStoredResult, StoredResultEntry, STORAGE_KEY } from '@/types/results';
+import { RawStoredResult, StoredResultEntry, STORAGE_KEY, CourseInfo } from '@/types/results';
 
 const hydrateEntry = (item: RawStoredResult): StoredResultEntry => {
-  const fallbackCourse = {
+  const course: CourseInfo = {
     subject: item.course?.subject ?? item.subject ?? '–',
     gradeLevel: item.course?.gradeLevel ?? item.gradeLevel ?? '–',
     className: item.course?.className ?? item.className ?? '–',
@@ -18,7 +18,7 @@ const hydrateEntry = (item: RawStoredResult): StoredResultEntry => {
     status: item.status ?? 'Fehler',
     fileName: item.fileName ?? 'Klausur',
     analysis: item.analysis,
-    course: item.course || fallbackCourse,
+    course,
   };
 };
 

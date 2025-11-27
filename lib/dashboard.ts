@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 export interface DashboardStats {
   activeExpectationHorizons: number
   completedCorrections: number
-  exportedReports: number
+  runningAnalyses: number
   recentCorrections: Array<{
     id: string
     subject: string
@@ -27,7 +27,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       return {
         activeExpectationHorizons: 0,
         completedCorrections: 0,
-        exportedReports: 0,
+        runningAnalyses: 0,
         recentCorrections: [],
       }
     }
@@ -38,24 +38,19 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
 
-  // Zähle abgeschlossene Korrekturen (dieses Monat)
-  const startOfMonth = new Date()
-  startOfMonth.setDate(1)
-  startOfMonth.setHours(0, 0, 0, 0)
-
+  // Zähle abgeschlossene Korrekturen (gesamt)
   const { count: correctionsCount } = await supabase
     .from('corrections')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
     .eq('status', 'completed')
-    .gte('created_at', startOfMonth.toISOString())
 
-  // Zähle Exporte (alle abgeschlossenen Korrekturen)
-  const { count: exportsCount } = await supabase
+  // Zähle laufende Analysen
+  const { count: runningCount } = await supabase
     .from('corrections')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
-    .eq('status', 'completed')
+    .eq('status', 'processing')
 
   // Hole letzte Korrekturen (gruppiert nach Fach und Datum)
   const { data: recentCorrectionsData } = await supabase
@@ -98,7 +93,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     return {
       activeExpectationHorizons: expectationCount || 0,
       completedCorrections: correctionsCount || 0,
-      exportedReports: exportsCount || 0,
+      runningAnalyses: runningCount || 0,
       recentCorrections,
     }
   } catch (error) {
@@ -107,7 +102,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     return {
       activeExpectationHorizons: 0,
       completedCorrections: 0,
-      exportedReports: 0,
+      runningAnalyses: 0,
       recentCorrections: [],
     }
   }

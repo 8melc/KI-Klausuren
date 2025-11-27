@@ -85,3 +85,4 @@ Laut Supabase-Dokumentation:
 
 **Wichtig:** Stelle nur sicher, dass du **NICHT** den `SUPABASE_SERVICE_ROLE_KEY` als `NEXT_PUBLIC_*` verwendest!
 
+

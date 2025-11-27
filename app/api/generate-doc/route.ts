@@ -3,7 +3,7 @@ import { generateFeedbackDoc } from '@/lib/generate-feedback-doc';
 
 export async function POST(req: Request) {
   try {
-    const { klausurName, analysis } = await req.json();
+    const { klausurName, analysis, courseInfo } = await req.json();
 
     if (!analysis) {
       return NextResponse.json({ error: 'Analyse-Daten fehlen' }, { status: 400 });
@@ -12,6 +12,7 @@ export async function POST(req: Request) {
     const docBuffer = await generateFeedbackDoc({
       klausurName: klausurName || 'Klausur',
       analysis,
+      courseInfo,
     });
 
     const safeName = (klausurName || 'Klausur').replace(/[^a-zA-Z0-9_-]+/g, '_');

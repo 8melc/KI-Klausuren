@@ -1,11 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import DataResetButton from '@/components/DataResetButton';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import TeacherFeedbackDocument from '@/components/TeacherFeedbackDocument';
-import { getGradeInfo } from '@/lib/grades';
+import ResultCompactView from '@/components/ResultCompactView';
+import DetailDrawer from '@/components/DetailDrawer';
+import { getGradeInfo, getPerformanceLevel, gradeColor } from '@/lib/grades';
 import { RawStoredResult, StoredResultEntry, STORAGE_KEY } from '@/types/results';
 
 const readResults = (): StoredResultEntry[] => {
@@ -41,6 +41,8 @@ export default function ResultsPage() {
   const [filterGrade, setFilterGrade] = useState('Alle');
   const [filterClass, setFilterClass] = useState('Alle');
   const [openResultId, setOpenResultId] = useState<string | null>(null);
+  const [selectedKlausurId, setSelectedKlausurId] = useState<string | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const filteredResults = useMemo(
     () =>
@@ -65,87 +67,109 @@ export default function ResultsPage() {
     localStorage.removeItem(STORAGE_KEY);
     setResults([]);
     setOpenResultId(null);
+    setSelectedKlausurId(null);
+    setIsDrawerOpen(false);
   };
 
   const toggleResult = (id: string) => {
     setOpenResultId((current) => (current === id ? null : id));
   };
 
+  const handleShowDetails = (id: string) => {
+    setSelectedKlausurId(id);
+    setIsDrawerOpen(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false);
+    setSelectedKlausurId(null);
+  };
+
+  const selectedEntry = useMemo(() => {
+    if (!selectedKlausurId) return null;
+    return results.find((entry) => entry.id === selectedKlausurId) || null;
+  }, [selectedKlausurId, results]);
+
   return (
     <ProtectedRoute>
-      <section className="results-section">
+      <section className="module-section">
         <div className="container">
-          <div className="results-header">
+          <div className="results-hero-card">
             <div>
-              <h1 className="results-title">Alle Klausuren</h1>
-              <p className="results-subtitle">
-                {results.length} Ergebnisse • {filteredResults.length} angezeigt
-              </p>
-            </div>
-            <div className="results-actions">
-              <button type="button" onClick={refreshResults} className="secondary-button">
-                Liste aktualisieren
-              </button>
-              <DataResetButton onReset={resetAllResults} label="Alle Ergebnisse löschen" />
+              <h2>Alle Klausuren</h2>
+              <p>{results.length} Ergebnisse • {filteredResults.length} angezeigt</p>
             </div>
           </div>
 
-          <div className="filter-row mb-4">
-            <label>
-              Jahrgang
-              <select value={filterGrade} onChange={(event) => setFilterGrade(event.target.value)}>
-                <option value="Alle">Alle</option>
-                {grades.map((grade) => (
-                  <option key={grade} value={grade}>
-                    {grade}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Fach
-              <select value={filterSubject} onChange={(event) => setFilterSubject(event.target.value)}>
-                <option value="Alle">Alle</option>
-                {subjects.map((subject) => (
-                  <option key={subject} value={subject}>
-                    {subject}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Klasse
-              <select value={filterClass} onChange={(event) => setFilterClass(event.target.value)}>
-                <option value="Alle">Alle</option>
-                {classes.map((klass) => (
-                  <option key={klass} value={klass}>
-                    {klass}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <div className="module-grid results-grid-spacing">
+            <div className="module-card">
+              <h3>Filter & Übersicht</h3>
 
-          {filteredResults.length === 0 ? (
-            <div className="results-empty-card">
-              <h3>Keine Ergebnisse</h3>
-              <p>Starte eine Analyse, um die Liste der Klausuren zu befüllen.</p>
-            </div>
-          ) : (
-            <div className="results-accordion">
-              {filteredResults.map((entry, index) => {
-                const gradeLabel = entry.analysis
-                  ? getGradeInfo(entry.analysis.prozent)
-                  : { badgeClass: 'grade-badge-average', label: '–' };
-                const statusBadgeClass =
-                  entry.status === 'Bereit'
-                    ? 'badge-success'
-                    : entry.status === 'Analyse läuft…'
-                      ? 'badge-info'
-                      : 'badge-error';
+              <div className="results-actions results-actions-spacing">
+                <button type="button" onClick={refreshResults} className="secondary-button">
+                  Liste aktualisieren
+                </button>
+                <DataResetButton onReset={resetAllResults} label="Alle Ergebnisse löschen" />
+              </div>
 
-                // Sicherstellen, dass key immer eindeutig ist
-                const uniqueKey = entry.id || `result-${index}-${entry.studentName}`;
+              <div className="filter-row filter-row-spacing">
+                <label>
+                  Jahrgang
+                  <select value={filterGrade} onChange={(event) => setFilterGrade(event.target.value)}>
+                    <option value="Alle">Alle</option>
+                    {grades.map((grade) => (
+                      <option key={grade} value={grade}>
+                        {grade}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Fach
+                  <select value={filterSubject} onChange={(event) => setFilterSubject(event.target.value)}>
+                    <option value="Alle">Alle</option>
+                    {subjects.map((subject) => (
+                      <option key={subject} value={subject}>
+                        {subject}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Klasse
+                  <select value={filterClass} onChange={(event) => setFilterClass(event.target.value)}>
+                    <option value="Alle">Alle</option>
+                    {classes.map((klass) => (
+                      <option key={klass} value={klass}>
+                        {klass}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              {filteredResults.length === 0 ? (
+                <div className="results-empty-card">
+                  <h3>Keine Ergebnisse</h3>
+                  <p>Starte eine Analyse, um die Liste der Klausuren zu befüllen.</p>
+                </div>
+              ) : (
+                <div className="results-accordion">
+                  {filteredResults.map((entry, index) => {
+                    const gradeLevel = entry.course.gradeLevel ? parseInt(entry.course.gradeLevel, 10) || 10 : 10;
+                    const gradeInfo = entry.analysis
+                      ? getGradeInfo({ prozent: entry.analysis.prozent, gradeLevel })
+                      : null;
+                    const grade = gradeInfo ? gradeInfo.label : '–';
+                    const statusBadgeClass =
+                      entry.status === 'Bereit'
+                        ? 'badge-success'
+                        : entry.status === 'Analyse läuft…'
+                          ? 'badge-info'
+                          : 'badge-error';
+
+                    // Sicherstellen, dass key immer eindeutig ist
+                    const uniqueKey = entry.id || `result-${index}-${entry.studentName}`;
 
                 return (
                   <article
@@ -167,31 +191,38 @@ export default function ResultsPage() {
                           <span>{entry.course.schoolYear}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`badge ${statusBadgeClass}`}>{entry.status}</span>
-                        <span className={`grade-badge ${gradeLabel.badgeClass}`}>{gradeLabel.label}</span>
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`badge ${statusBadgeClass}`}>{entry.status}</span>
+                          <span className={`grade-badge ${gradeInfo ? gradeInfo.badgeClass : 'grade-unknown'}`}>{grade}</span>
+                        </div>
+                        <span className="text-sm text-gray-700">
+                          {new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                        </span>
                       </div>
                     </button>
 
-                    {openResultId === entry.id && (
-                      <div className="results-accordion-content">
-                        {entry.analysis ? (
-                          <TeacherFeedbackDocument entry={entry} />
-                        ) : (
-                          <div className="text-sm text-gray-600 mb-4">
-                            Die Analyse läuft noch. Sobald sie abgeschlossen ist, erscheint hier die Detailauswertung.
+                        {openResultId === entry.id && (
+                          <div className="results-accordion-content">
+                            {entry.analysis ? (
+                              <ResultCompactView entry={entry} onShowDetails={() => handleShowDetails(entry.id)} />
+                            ) : (
+                              <div className="text-sm text-gray-600 mb-4">
+                                Die Analyse läuft noch. Sobald sie abgeschlossen ist, erscheint hier die Detailauswertung.
+                              </div>
+                            )}
                           </div>
                         )}
-                        <Link href={`/results/${entry.id}`} className="text-link inline-flex items-center gap-1">
-                          Zum Einzelbericht →
-                        </Link>
-                      </div>
-                    )}
-                  </article>
-                );
-              })}
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          {/* Detail Drawer */}
+          <DetailDrawer entry={selectedEntry} isOpen={isDrawerOpen} onClose={handleCloseDrawer} />
         </div>
       </section>
     </ProtectedRoute>

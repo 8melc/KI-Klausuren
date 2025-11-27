@@ -1,6 +1,31 @@
 import OpenAI from 'openai';
 import { GradingResult, gradingSchema } from './grading-schema';
 
+/**
+ * Berechnet geschätzte Kosten basierend auf Token-Usage
+ */
+function calculateCost(
+  usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number },
+  model: 'gpt-4o-mini' | 'gpt-4o'
+): number {
+  // Preise pro 1M Tokens (Stand 2024)
+  const prices = {
+    'gpt-4o-mini': {
+      input: 0.15 / 1_000_000,
+      output: 0.60 / 1_000_000,
+    },
+    'gpt-4o': {
+      input: 2.50 / 1_000_000,
+      output: 10.00 / 1_000_000,
+    },
+  };
+
+  const modelPrices = prices[model];
+  const inputCost = usage.prompt_tokens * modelPrices.input;
+  const outputCost = usage.completion_tokens * modelPrices.output;
+  return inputCost + outputCost;
+}
+
 export interface GradeKlausurInput {
   expectationHorizon: string;
   gradingRubric: string;
@@ -79,6 +104,17 @@ Gib deine Bewertung als strukturiertes JSON zurück.`;
       },
       temperature: 0.3,
     });
+
+    // Token-Usage Tracking
+    if (response.usage) {
+      const cost = calculateCost(response.usage, 'gpt-4o');
+      console.log('[Token-Usage] gradeKlausur (gpt-4o):', {
+        prompt_tokens: response.usage.prompt_tokens,
+        completion_tokens: response.usage.completion_tokens,
+        total_tokens: response.usage.total_tokens,
+        estimated_cost_usd: cost.toFixed(6),
+      });
+    }
 
     const parsedContent = response.choices[0]?.message?.content ?? '{}';
     const result = JSON.parse(parsedContent) as GradingResult;

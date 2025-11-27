@@ -1,10 +1,12 @@
 'use client';
 
 import { KlausurAnalyse } from './openai';
+import type { CourseInfo } from '@/types/results';
 
 export async function downloadAnalysisDoc(
   klausurName: string,
   analysis: KlausurAnalyse,
+  courseInfo?: CourseInfo,
 ) {
   try {
     const response = await fetch('/api/generate-doc', {
@@ -13,6 +15,7 @@ export async function downloadAnalysisDoc(
       body: JSON.stringify({
         klausurName,
         analysis,
+        courseInfo,
       }),
     });
 

@@ -75,3 +75,4 @@ Die Dashboard-Seite lädt jetzt automatisch Daten aus Supabase.
 - Die Policies sollten automatisch erstellt werden
 - Falls nicht, prüfe in Supabase → Authentication → Policies
 
+

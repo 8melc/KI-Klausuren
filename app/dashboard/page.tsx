@@ -2,6 +2,8 @@ import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { getDashboardStats } from '@/lib/dashboard';
 import { getSubscriptionStatus } from '@/lib/subscription';
+import DashboardCreditsCard from '@/components/DashboardCreditsCard';
+import WelcomeBanner from '@/components/WelcomeBanner';
 
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
@@ -9,36 +11,21 @@ export default async function DashboardPage() {
 
   const summaryCards = [
     {
-      label: 'Erwartungshorizonte',
-      value: `${stats.activeExpectationHorizons} aktiv`,
-      detail: stats.activeExpectationHorizons > 0 ? 'hinterlegt' : 'noch keine hinterlegt',
-    },
-    {
-      label: 'Korrigierte Arbeiten',
+      label: 'Gesamt korrigierte Arbeiten',
       value: `${stats.completedCorrections}`,
-      detail: 'in diesem Monat abgeschlossen',
+      detail: stats.completedCorrections === 1 ? 'Arbeit' : 'Arbeiten',
     },
     {
-      label: 'Exportierte Berichte',
-      value: `${stats.exportedReports}`,
-      detail: 'PDF & Word',
+      label: 'Laufende Analysen',
+      value: `${stats.runningAnalyses}`,
+      detail: stats.runningAnalyses === 1 ? 'wird analysiert' : 'werden analysiert',
     },
   ];
 
-  const subscriptionTypeLabel = subscription.subscriptionType === 'monthly' 
-    ? 'Monatsabo' 
-    : subscription.subscriptionType === 'yearly'
-    ? 'Jahresabo'
-    : subscription.subscriptionType === 'one-time'
-    ? 'Einzellauf'
-    : 'Kein Abonnement';
-
-  const subscriptionExpiry = subscription.expiresAt 
-    ? subscription.expiresAt.toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })
-    : null;
 
   return (
     <ProtectedRoute>
+      <WelcomeBanner />
       <section className="page-section">
         <div className="container">
           <div className="page-intro">
@@ -57,61 +44,36 @@ export default async function DashboardPage() {
                 <p className="dashboard-stat-trend">{card.detail}</p>
               </div>
             ))}
+            <DashboardCreditsCard />
           </div>
 
-          <div className="account-grid">
+          <div style={{ marginTop: 'var(--spacing-2xl)', textAlign: 'center' }}>
+            <Link href="/correction" className="primary-button" style={{ fontSize: '1.125rem', padding: 'var(--spacing-md) var(--spacing-xl)', display: 'inline-block' }}>
+              <span>Neue Korrektur starten</span>
+            </Link>
+          </div>
+
+          <div className="account-grid" style={{ marginTop: 'var(--spacing-2xl)' }}>
             <div className="account-card">
               <p className="account-card-title">Abonnement</p>
               <div className={`beta-status ${subscription.hasActiveSubscription ? '' : 'beta-status-warning'}`}>
                 <span className="beta-dot" />
                 <div>
                   <p className="beta-status-title">
-                    {subscription.hasActiveSubscription ? `${subscriptionTypeLabel} aktiv` : 'Kein aktives Abonnement'}
+                    {subscription.hasActiveSubscription ? 'Aktiv' : 'Kein aktives Abonnement'}
                   </p>
                   <p className="beta-status-description">
-                    {subscription.hasActiveSubscription && subscriptionExpiry
-                      ? `Verlängert sich am ${subscriptionExpiry} automatisch.`
-                      : subscription.hasActiveSubscription
-                      ? 'Aktiv'
+                    {subscription.hasActiveSubscription
+                      ? 'Ihr Abonnement ist aktiv.'
                       : 'Bitte ein Abonnement abschließen.'}
                   </p>
                 </div>
               </div>
-              <p className="account-info-label">Lizenzumfang</p>
-              <p className="account-info-value">
-                {subscription.hasActiveSubscription 
-                  ? subscription.subscriptionType === 'one-time'
-                    ? 'Einzellauf (30 Tage gültig)'
-                    : 'Unbegrenzte Korrekturen &amp; Exporte'
-                  : 'Kein Zugriff'}
-              </p>
-              <div className="cta-actions">
+              <div className="cta-actions" style={{ marginTop: 'var(--spacing-lg)' }}>
                 <Link href="/checkout" className="secondary-button">
                   <span>{subscription.hasActiveSubscription ? 'Plan ändern' : 'Abonnement wählen'}</span>
                 </Link>
-                <Link href="/correction" className="primary-button">
-                  <span>Neue Korrektur</span>
-                </Link>
               </div>
-            </div>
-
-            <div className="account-card">
-              <p className="account-card-title">Unterstützung</p>
-              <div className="beta-status beta-status-warning">
-                <span className="beta-dot" />
-                <div>
-                  <p className="beta-status-title">Persönliche Betreuung</p>
-                  <p className="beta-status-description">
-                    Wir helfen beim Upload, bei der Bewertung und bei Exportfragen.
-                  </p>
-                </div>
-              </div>
-              <p className="account-info-label">Kontakt</p>
-              <ul className="checklist checklist-compact">
-                <li>Leitfaden zur Digitalisierung anfordern</li>
-                <li>Gemeinsame Review-Sitzung buchen</li>
-                <li>Support: kontakt@korrekturpilot.de</li>
-              </ul>
             </div>
           </div>
 

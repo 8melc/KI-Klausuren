@@ -135,3 +135,4 @@ Wenn du dir unsicher bist:
 - **IDs** → ✅ Meist sicher öffentlich
 - **Keys/Secrets** → ❌ NIEMALS öffentlich (außer Anon Keys mit RLS)
 
+

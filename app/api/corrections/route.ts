@@ -52,10 +52,16 @@ export async function POST(request: NextRequest) {
     console.log('Saving correction:', { id: body.id, fileName: body.fileName, status: body.status });
 
     // Prüfe ob Korrektur bereits existiert
+    // Type Guard: user muss hier definiert sein
+    if (!user) {
+      return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 });
+    }
+    
+    const userId = user.id;
     const { data: existing } = await supabase
       .from('corrections')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('id', body.id)
       .maybeSingle();
 
@@ -75,7 +81,7 @@ export async function POST(request: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq('id', body.id)
-        .eq('user_id', user.id);
+        .eq('user_id', userId);
 
       if (error) {
         console.error('Supabase update error:', error);
@@ -85,7 +91,7 @@ export async function POST(request: NextRequest) {
       // Erstelle neue Korrektur mit der ID aus dem Frontend
       const { error } = await supabase.from('corrections').insert({
         id: body.id,
-        user_id: user.id,
+        user_id: userId,
         student_name: body.studentName,
         file_name: body.fileName,
         course_subject: body.course.subject,

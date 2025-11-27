@@ -5,9 +5,7 @@ import { usePathname } from 'next/navigation';
 import AuthButton from './AuthButton';
 
 const NAV_LINKS = [
-  { href: '/', label: 'Start' },
-  { href: '/#ablauf', label: 'Ablauf' },
-  { href: '/#preise', label: 'Preise' },
+  { href: '/correction', label: 'Korrektur' },
   { href: '/results', label: 'Ergebnisse' },
 ];
 
@@ -55,12 +53,6 @@ export default function AppHeader() {
             ))}
           </nav>
           <div className="header-actions">
-            <Link href="/correction" className="primary-button header-cta">
-              <span>Korrektur starten</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
             <AuthButton />
           </div>
         </div>
