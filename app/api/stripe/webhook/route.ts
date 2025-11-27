@@ -31,9 +31,7 @@ export async function POST(req: Request) {
     return new NextResponse('Webhook error: NEXT_PUBLIC_SUPABASE_URL ist nicht konfiguriert', { status: 500 })
   }
 
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-11-17.clover',
-  })
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
   let event: Stripe.Event
 

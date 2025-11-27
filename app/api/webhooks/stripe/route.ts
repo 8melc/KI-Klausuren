@@ -15,9 +15,7 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('SUPABASE_SERVICE_ROLE_KEY ist nicht konfiguriert')
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-11-17.clover',
-})
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
