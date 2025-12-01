@@ -3,55 +3,76 @@
 import { createClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from './AuthProvider';
+
+const supabase = createClient();
 
 export default function CreditsDisplay() {
+  const { user, session, loading: authLoading } = useAuth();
   const [credits, setCredits] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchCredits() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setCredits(null);
-        setLoading(false);
-        return;
-      }
+    let mounted = true;
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('credits')
-        .eq('id', user.id)
-        .single();
+    async function loadCredits() {
+      setLoading(true);
+      setErrorMsg(null);
 
-      if (error) {
-        // Wenn Tabelle noch nicht existiert, ignoriere Fehler
-        if (error.code === 'PGRST116' || error.message.includes('does not exist')) {
+      // Warte auf Auth-Initialisierung
+      if (authLoading) return;
+
+      // Keine Session oder kein User -> keine DB-Abfrage
+      if (!session || !user?.id) {
+        if (mounted) {
           setCredits(null);
           setLoading(false);
-          return;
         }
-        console.error('Error fetching credits:', error);
-        setCredits(null);
-        setLoading(false);
         return;
       }
 
-      setCredits(data?.credits || 0);
-      setLoading(false);
+      try {
+        // Sichere DB-Abfrage (nur wenn Session vorhanden)
+        const { data, error } = await supabase
+          .from('users')
+          .select('credits')
+          .eq('id', user.id)
+          .single();
+
+        if (!mounted) return;
+
+        if (error) {
+          // Wenn Tabelle noch nicht existiert, ignoriere Fehler
+          if (error.code === 'PGRST116' || error.message.includes('does not exist')) {
+            setCredits(null);
+          } else {
+            console.error('Credits fetch error:', error);
+            setErrorMsg('Fehler beim Laden der Credits.');
+            setCredits(null);
+          }
+        } else {
+          setCredits(data?.credits ?? 0);
+        }
+        setLoading(false);
+      } catch (err) {
+        console.error('Unexpected error loading credits:', err);
+        if (mounted) {
+          setErrorMsg('Unerwarteter Fehler.');
+          setCredits(null);
+          setLoading(false);
+        }
+      }
     }
 
-    fetchCredits();
+    loadCredits();
 
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      fetchCredits();
-    });
+    return () => {
+      mounted = false;
+    };
+  }, [authLoading, session, user?.id]);
 
-    return () => subscription.unsubscribe();
-  }, [supabase]);
-
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="px-4 py-2 text-sm text-gray-600">
         Lädt...
@@ -59,7 +80,8 @@ export default function CreditsDisplay() {
     );
   }
 
-  if (credits === null) {
+  // Wenn keine Session oder Fehler, zeige nichts (nicht störend)
+  if (credits === null || errorMsg) {
     return null;
   }
 

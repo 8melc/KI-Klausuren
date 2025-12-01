@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, ReactNode } from 'react';
+import { AuthProvider } from '@/components/AuthProvider';
 
 type GradingContextType = Record<string, unknown>;
 
@@ -20,4 +21,15 @@ export function useGrading() {
     throw new Error('useGrading must be used within a GradingProvider');
   }
   return context;
+}
+
+// Root Provider: Kombiniert alle Provider
+export function RootProvider({ children }: { children: ReactNode }) {
+  return (
+    <AuthProvider>
+      <GradingProvider>
+        {children}
+      </GradingProvider>
+    </AuthProvider>
+  );
 }

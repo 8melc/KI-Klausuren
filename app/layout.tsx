@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { GradingProvider } from "./providers";
+import { RootProvider } from "./providers";
 import AppHeader from "@/components/AppHeader";
 import AppFooter from "@/components/AppFooter";
 
@@ -65,11 +65,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <GradingProvider>
+        <RootProvider>
           <AppHeader />
           <main className="main-content">{children}</main>
           <AppFooter />
-        </GradingProvider>
+        </RootProvider>
       </body>
     </html>
   );
