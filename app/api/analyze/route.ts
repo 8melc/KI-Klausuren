@@ -1,21 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeKlausur, analyzeKlausurUniversal } from '@/lib/openai';
-import { checkApiAuth, getCurrentUser } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import type { MasterAnalysisInput } from '@/lib/analysis/types';
 
 export async function POST(request: NextRequest) {
-  // Auth-Check (während Entwicklung deaktiviert)
-  const authError = await checkApiAuth();
-  if (authError) {
-    return authError;
-  }
-
-  // Hole aktuellen User
+  // Hole aktuellen User direkt (getUser() validiert Token gegen Supabase Server)
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json(
-      { error: 'Unauthorized' },
+      { error: 'Nicht eingeloggt. Bitte melde dich an.' },
       { status: 401 }
     );
   }

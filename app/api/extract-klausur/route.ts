@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractHandwrittenPdfText } from '@/lib/handwritten-pdf';
-import { checkApiAuth } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
-  const authError = await checkApiAuth();
-  if (authError) {
-    return authError;
-  }
+  // Auth-Check entfernt - wird bei Bedarf über getCurrentUser() gemacht
 
   try {
     const formData = await request.formData();
