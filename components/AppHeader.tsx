@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AuthButton from './AuthButton';
+import CreditsDisplay from './CreditsDisplay';
 
 const NAV_LINKS = [
   { href: '/correction', label: 'Korrektur' },
@@ -53,6 +54,7 @@ export default function AppHeader() {
             ))}
           </nav>
           <div className="header-actions">
+            <CreditsDisplay />
             <AuthButton />
           </div>
         </div>

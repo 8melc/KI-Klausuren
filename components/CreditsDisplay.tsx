@@ -45,13 +45,16 @@ export default function CreditsDisplay() {
         if (error) {
           // Wenn Tabelle noch nicht existiert, ignoriere Fehler
           if (error.code === 'PGRST116' || error.message.includes('does not exist')) {
+            console.warn('Users table does not exist or user not found:', error);
             setCredits(null);
           } else {
             console.error('Credits fetch error:', error);
+            console.error('Error details:', { code: error.code, message: error.message, user: user.id });
             setErrorMsg('Fehler beim Laden der Credits.');
             setCredits(null);
           }
         } else {
+          console.log('Credits loaded successfully:', data?.credits);
           setCredits(data?.credits ?? 0);
         }
         setLoading(false);

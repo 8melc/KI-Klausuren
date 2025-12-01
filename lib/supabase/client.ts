@@ -1,10 +1,16 @@
 import { createClient as createSupabaseClient, SupabaseClient } from '@supabase/supabase-js';
 
-let supabase: SupabaseClient | null = null;
+// Singleton-Instanz für den Browser-Client
+let supabaseClient: SupabaseClient | null = null;
 
 export function createClient(): SupabaseClient {
-  if (supabase) return supabase;
-  supabase = createSupabaseClient(
+  // Wenn bereits eine Instanz existiert, verwende diese
+  if (supabaseClient) {
+    return supabaseClient;
+  }
+
+  // Erstelle neue Instanz nur einmal
+  supabaseClient = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -15,11 +21,9 @@ export function createClient(): SupabaseClient {
       },
     }
   );
-  return supabase;
-}
 
-// Optional: exportiere bereits die Singleton-Instanz für einfachen Import
-export const supabaseClient = createClient();
+  return supabaseClient;
+}
 
 
 

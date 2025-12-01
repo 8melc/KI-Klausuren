@@ -4,8 +4,6 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { createClient } from '@/lib/supabase/client';
 import type { Session as SupabaseSession, User } from '@supabase/supabase-js';
 
-const supabase = createClient();
-
 type Session = SupabaseSession | null;
 
 type AuthContextType = {
@@ -24,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    const supabase = createClient();
 
     async function init() {
       // 1) Lade aktuelle Session beim Start
@@ -39,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // 2) Höre auf Auth-Änderungen (login/logout/token refresh)
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      if (!mounted) return;
       const sess = newSession ?? null;
       setSession(sess);
       setUser(sess?.user ?? null);
@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function signOut() {
+    const supabase = createClient();
     await supabase.auth.signOut();
     setSession(null);
     setUser(null);

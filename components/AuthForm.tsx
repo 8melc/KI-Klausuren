@@ -39,13 +39,14 @@ export default function EmailAuthForm({ mode, onClose, onSwitchMode, onGoogleSig
         alert("Bitte E-Mail bestätigen! Du wirst nach der Bestätigung zum Dashboard weitergeleitet.");
         onClose?.();
         // Warte auf E-Mail-Bestätigung (wird via Auth-Callback gehandhabt)
+        // User wird nach Bestätigung automatisch zu /auth/callback weitergeleitet
       }
     }
   }
 
   async function handleLogin() {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -54,6 +55,8 @@ export default function EmailAuthForm({ mode, onClose, onSwitchMode, onGoogleSig
       alert(error.message);
     } else {
       onClose?.();
+      // Nach erfolgreichem Login zum Dashboard weiterleiten
+      router.push('/dashboard');
     }
   }
 

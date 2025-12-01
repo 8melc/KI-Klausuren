@@ -64,10 +64,16 @@ export default async function DashboardPage() {
                   <p className="beta-status-title">
                     {subscription.hasActiveSubscription ? 'Aktiv' : 'Kein aktives Abonnement'}
                   </p>
-                  <p className="beta-status-description">
-                    {subscription.hasActiveSubscription
-                      ? 'Ihr Abonnement ist aktiv.'
-                      : 'Bitte ein Abonnement abschließen.'}
+                      <p className="beta-status-description">
+                    {subscription.lastPayment
+                      ? (() => {
+                          const date = subscription.lastPayment.date;
+                          const day = date.getDate().toString().padStart(2, '0');
+                          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                          const year = date.getFullYear().toString().slice(-2);
+                          return `Sie haben am ${day}.${month}.${year} eine Zahlung von ${subscription.lastPayment.amount.toFixed(2)}€ für ${subscription.lastPayment.klausuren} Klausuren getätigt.`;
+                        })()
+                      : 'Sie haben bisher nichts gekauft.'}
                   </p>
                 </div>
               </div>

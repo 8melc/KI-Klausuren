@@ -103,6 +103,49 @@ export async function POST(req: Request) {
       nachher: updatedUser.credits
     });
 
+    // Erstelle Payment-Eintrag in der payments Tabelle
+    try {
+      // Hole Payment Intent Details von Stripe
+      const paymentIntentId = session.payment_intent as string;
+      let amount = 790; // Default: 7.90€ in Cents
+      let currency = 'eur';
+
+      if (paymentIntentId) {
+        try {
+          const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+          amount = paymentIntent.amount;
+          currency = paymentIntent.currency;
+        } catch (err) {
+          console.warn('⚠️ Konnte Payment Intent nicht abrufen:', err);
+        }
+      }
+
+      // Erstelle Payment-Eintrag
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .insert({
+          user_id: userId,
+          stripe_payment_intent_id: paymentIntentId || session.id,
+          amount: amount,
+          currency: currency,
+          status: 'completed',
+        });
+
+      if (paymentError) {
+        console.error('❌ Fehler beim Erstellen des Payment-Eintrags:', paymentError);
+        // Nicht kritisch, Webhook sollte trotzdem 200 zurückgeben
+      } else {
+        console.log('✅ Payment-Eintrag erstellt:', {
+          userId,
+          amount: amount / 100,
+          currency,
+        });
+      }
+    } catch (paymentErr) {
+      console.error('❌ Unerwarteter Fehler beim Erstellen des Payment-Eintrags:', paymentErr);
+      // Nicht kritisch, Webhook sollte trotzdem 200 zurückgeben
+    }
+
     return NextResponse.json({ 
       received: true,
       creditsAdded: creditsToAdd,
