@@ -13,49 +13,55 @@ function CheckoutSuccessContent() {
 
   useEffect(() => {
     let mounted = true
-    if (!sessionId) {
-      // Wenn keine session_id, direkt zum Dashboard
-      router.push('/dashboard')
-      return
-    }
-
-    const refreshSession = async () => {
+    
+    const refreshSessionAndRedirect = async () => {
       try {
         // 🔥 WICHTIG: Session nach Stripe Redirect refreshen
         const supabase = createClient()
         
-        // Refresh die Auth Session
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
-        if (error) {
-          console.error('Session refresh error:', error)
-        } else if (session) {
-          console.log('✅ Session erfolgreich refreshed nach Checkout')
+        // Refresh die Auth Session - mehrfach versuchen für Zuverlässigkeit
+        let sessionRefreshed = false
+        for (let i = 0; i < 3; i++) {
+          const { data: { session }, error } = await supabase.auth.getSession()
+          
+          if (error) {
+            console.error(`Session refresh attempt ${i + 1} error:`, error)
+          } else if (session) {
+            console.log('✅ Session erfolgreich refreshed nach Checkout')
+            sessionRefreshed = true
+            break
+          }
+          
+          // Kurze Pause zwischen Versuchen
+          await new Promise(resolve => setTimeout(resolve, 200))
         }
 
-        // Kurze Verzögerung, damit Session gesetzt wird
-        await new Promise(resolve => setTimeout(resolve, 500))
+        // Zusätzlich: Versuche Session explizit zu refreshen
+        try {
+          const { data: { session: refreshedSession } } = await supabase.auth.refreshSession()
+          if (refreshedSession) {
+            console.log('✅ Session explizit refreshed')
+            sessionRefreshed = true
+          }
+        } catch (refreshError) {
+          console.error('Explicit session refresh error:', refreshError)
+        }
         
         if (mounted) {
-          setLoading(false)
-          // Nach 2 Sekunden zum Dashboard weiterleiten
-          setTimeout(() => {
-            router.push('/dashboard')
-          }, 2000)
+          // SOFORT zum Dashboard weiterleiten (replace statt push für besseres UX)
+          router.replace('/dashboard')
         }
       } catch (error) {
         console.error('Error refreshing session:', error)
         if (mounted) {
-          setLoading(false)
-          // Auch bei Fehler zum Dashboard weiterleiten
-          setTimeout(() => {
-            router.push('/dashboard')
-          }, 2000)
+          // Auch bei Fehler sofort zum Dashboard weiterleiten
+          router.replace('/dashboard')
         }
       }
     }
 
-    refreshSession()
+    // Starte sofort, auch ohne sessionId
+    refreshSessionAndRedirect()
 
     return () => {
       mounted = false

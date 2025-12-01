@@ -4,6 +4,7 @@ import { getDashboardStats } from '@/lib/dashboard';
 import { getSubscriptionStatus } from '@/lib/subscription';
 import DashboardCreditsCard from '@/components/DashboardCreditsCard';
 import WelcomeBanner from '@/components/WelcomeBanner';
+import CheckoutSessionHandler from '@/components/CheckoutSessionHandler';
 
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
@@ -25,6 +26,7 @@ export default async function DashboardPage() {
 
   return (
     <ProtectedRoute>
+      <CheckoutSessionHandler />
       <WelcomeBanner />
       <section className="page-section">
         <div className="container">
