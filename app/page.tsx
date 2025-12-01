@@ -21,6 +21,10 @@ const features = [
     title: 'Ganzen Klassensatz hochladen',
     description: 'Bis zu 10 Klausuren auf einmal hochladen – fertig in 4–6 Minuten.',
   },
+  {
+    title: 'ChatGPT kann das nicht',
+    description: 'Handschriften stapelweise korrigieren, Erwartungshorizont anwenden und DOCX-Feedback liefern – genau dafür ist KorrekturPilot gebaut.',
+  },
 ];
 
 const steps = [
@@ -79,22 +83,28 @@ const stats = [
 export default function Home() {
   return (
     <>
+      <section className="module-section" style={{ padding: 'var(--spacing-sm) 0', background: 'var(--color-gray-50)' }}>
+        <div className="container" style={{ textAlign: 'center' }}>
+          <p className="hero-tag" style={{ margin: 0 }}>Beta-Phase: Werden Sie eine:r von 20 Pionier:innen und gestalten Sie das Tool mit.</p>
+        </div>
+      </section>
+
       <section className="hero" id="hero">
         <div className="container">
           <div className="hero-content">
-            <p className="hero-tag">Erste Klausur kostenlos ausprobieren · Early Access: 25 Credits für 7,90 € (statt später 29 €)</p>
+            <p className="hero-tag">Erste Klausur kostenlos ausprobieren · Early Access: 25 Klausuren für 7,90 € (statt später 29 €)</p>
             <h1 className="hero-title">Korrigieren Sie eine Klasse in Minuten statt Stunden.</h1>
             <p className="hero-subtitle">
-              KorrekturPilot automatisiert die komplette Klausurkorrektur: Handschrift-OCR,
-              Bewertung nach Erwartungshorizont, Teilpunkte und DOCX-Feedback. Holen Sie sich zuerst den
-              Aha-Moment mit einer kostenlosen Klausur – sichern Sie danach den Early-Access-Preis.
+              Schluss mit Korrektur-Marathons. Unsere KI liest jede Handschrift, gleicht sie mit Ihrem Erwartungshorizont ab
+              und erstellt ein fertiges DOCX-Feedback. Testen Sie die erste Klausur risikofrei – und sichern Sie sich danach den
+              lebenslangen Vorzugspreis.
             </p>
             <div className="hero-cta-group">
               <Link href="/expectation" className="primary-button">
-                <span>Kostenlose Klausur starten</span>
+                <span>Jetzt 1. Klausur kostenlos testen</span>
               </Link>
               <Link href="#pricing" className="secondary-button">
-                <span>Early Access sichern</span>
+                <span>Zum Pionier-Angebot</span>
               </Link>
               <Link href="#example" className="text-link">
                 <span>Beispiel ansehen</span>
@@ -116,8 +126,8 @@ export default function Home() {
         <div className="container">
           <h2 className="section-title">Korrigieren frisst Abende – und bleibt subjektiv.</h2>
           <p className="section-description">
-            Handschriftliche Klassenarbeiten kosten pro Schüler:in 10–20 Minuten. Allgemeine KI-Tools
-            helfen nur begrenzt, weil sie nicht auf Erwartungshorizonte ausgelegt sind.
+            Handschriftliche Arbeiten zu entziffern und fair zu bewerten kostet pro Heft 15–20 Minuten. KorrekturPilot löst genau das –
+            anders als ChatGPT, das keine handschriftlichen PDFs stapelweise mit Erwartungshorizont korrigieren kann.
           </p>
           <div className="module-grid">
             <div className="module-card">
@@ -131,9 +141,9 @@ export default function Home() {
             <div className="module-card">
               <h3>Lösung</h3>
               <ul style={{ lineHeight: 1.6, color: 'var(--color-gray-700)', paddingLeft: 'var(--spacing-lg)' }}>
-                <li>Handschrift-OCR + Erwartungshorizont-Abgleich</li>
-                <li>Teilpunkte, Punktespiegel, Feedback und DOCX-Export</li>
-                <li>Batch-Korrektur von bis zu 10 Klausuren in 4–6 Minuten</li>
+                <li>Liest auch unleserliche Handschriften ("Sauklaue") und gleicht sie mit dem Erwartungshorizont ab</li>
+                <li>Automatische Bepunktung &amp; individuelles Feedback</li>
+                <li>Ganzen Klassensatz (bis 10 Hefte) auf einen Klick korrigieren</li>
               </ul>
               <div style={{ marginTop: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
                 <Link href="/upload" className="primary-button">
@@ -238,6 +248,7 @@ export default function Home() {
                 <li>Direkt editierbar und personalisierbar</li>
                 <li>Kompatibel mit Schulservern und Mailversand</li>
                 <li>Saubere Formatierung für Ausdruck und Weitergabe</li>
+                <li>Erwartungshorizont kann als PDF/Foto hochgeladen oder direkt eingetippt werden</li>
               </ul>
               <p style={{ marginTop: 'var(--spacing-lg)', color: 'var(--color-gray-700)' }}>
                 Zeitbedarf: 4–6 Minuten für bis zu 10 Klausuren gleichzeitig.
@@ -274,7 +285,7 @@ export default function Home() {
         <div className="container">
           <div className="pricing-header">
             <h2 className="section-title">Sofort starten, fair bezahlen.</h2>
-            <p className="section-description">Erste Klausur kostenlos ausprobieren. Early-Access-Preis nur für kurze Zeit: 7,90 € statt 29 €.</p>
+            <p className="section-description">Teste die erste Klausur völlig kostenlos. Überzeugt? Dann hol dir den Early-Access-Preis für den ganzen Stapel: 7,90 € statt 29 € (nur für kurze Zeit).</p>
           </div>
           <div className="pricing-grid">
             <div className="pricing-card">
@@ -307,7 +318,7 @@ export default function Home() {
                 <li>Fairness &amp; Konsistenz gesichert</li>
               </ul>
               <p style={{ color: 'var(--color-gray-700)' }}>
-                100% Zufriedenheitsgarantie: Wenn Ihnen die Korrektur keine Zeit spart, erhalten Sie Ihr Geld sofort zurück. Umgerechnet 0,31 € pro Klausur – weniger als 2 Minuten Arbeitszeit.
+                Early-Access-Preis – nur für kurze Zeit (später 29 €). 100% Zufriedenheitsgarantie: Wenn Ihnen die Korrektur keine Zeit spart, erhalten Sie Ihr Geld sofort zurück. Umgerechnet 0,31 € pro Klausur – weniger als 2 Minuten Arbeitszeit.
               </p>
               <Link href="/upload" className="primary-button pricing-button">
                 Early Access sichern
