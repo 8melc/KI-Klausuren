@@ -156,3 +156,4 @@ supabase migration up
 3. **Abo-Modell:** Monatliche Credits statt einmaliger Käufe
 4. **Credit-Verlauf:** Ablaufdatum für Credits (optional)
 
+

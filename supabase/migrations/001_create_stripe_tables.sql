@@ -42,3 +42,4 @@ CREATE POLICY "Users can view own payments"
   USING (auth.uid() = user_id);
 
 
+

@@ -136,3 +136,4 @@ Wenn du dir unsicher bist:
 - **Keys/Secrets** → ❌ NIEMALS öffentlich (außer Anon Keys mit RLS)
 
 
+

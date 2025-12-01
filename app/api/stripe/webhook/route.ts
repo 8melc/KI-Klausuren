@@ -47,10 +47,22 @@ export async function POST(req: Request) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
+    
+    // DEBUG LOGS - zum Testen
+    console.log('🔍 Session empfangen:', {
+      sessionId: session.id,
+      customer_email: session.customer_details?.email,
+      metadata: session.metadata,
+      has_metadata: !!session.metadata,
+      metadata_keys: session.metadata ? Object.keys(session.metadata) : []
+    })
+    
     const userId = session.metadata?.userId
-
+    console.log('📝 UserId aus metadata:', userId)
+    
     if (!userId) {
-      console.warn('Webhook: Keine userId in session.metadata')
+      console.warn('❌ Webhook: Keine userId in session.metadata')
+      console.warn('Full session object:', JSON.stringify(session, null, 2))
       return NextResponse.json({ received: true })
     }
 
