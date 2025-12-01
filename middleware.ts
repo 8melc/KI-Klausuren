@@ -71,18 +71,43 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // 🔥 WICHTIG: Nach Stripe Redirect Session refreshen
-  // Wenn User nicht eingeloggt ist, aber auf geschützte Route zugreift,
-  // versuche Session zu refreshen (für Stripe Redirects)
-  if (!user && (request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/checkout/success'))) {
+  // Prüfe ob Checkout-Parameter vorhanden sind
+  const checkoutStatus = request.nextUrl.searchParams.get('checkout')
+  const isCheckoutRedirect = checkoutStatus === 'success' && request.nextUrl.pathname.startsWith('/dashboard')
+  
+  if (isCheckoutRedirect || (!user && (request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/checkout/success')))) {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
+      // Versuche Session zu holen
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error('Session error in middleware:', sessionError)
+      }
+      
       if (session) {
         // Session existiert, versuche zu refreshen
-        await supabase.auth.refreshSession()
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+        
+        if (refreshError) {
+          console.error('Session refresh error in middleware:', refreshError)
+        } else if (refreshedSession) {
+          console.log('✅ Session in middleware refreshed nach Checkout')
+        }
+      } else if (!user) {
+        // Keine Session gefunden - könnte nach Stripe Redirect sein
+        // Versuche explizit zu refreshen
+        try {
+          const { data: { session: newSession } } = await supabase.auth.refreshSession()
+          if (newSession) {
+            console.log('✅ Neue Session in middleware erstellt nach Checkout')
+          }
+        } catch (error) {
+          console.error('Error creating new session in middleware:', error)
+        }
       }
     } catch (error) {
       // Ignoriere Fehler beim Refresh
-      console.error('Session refresh error in middleware:', error)
+      console.error('Unexpected error in middleware session refresh:', error)
     }
   }
 
