@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 // Feature Flag: Setze auf false, um Auth-Schutz während der Entwicklung zu deaktivieren
-export const AUTH_ENABLED = false // TODO: Auf true setzen für Production
+export const AUTH_ENABLED = true // Production-ready: Auth ist aktiviert
 
 export async function getCurrentUser() {
   if (!AUTH_ENABLED) {
