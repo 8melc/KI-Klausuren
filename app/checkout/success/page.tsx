@@ -1,32 +1,66 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const sessionId = searchParams.get('session_id')
 
   useEffect(() => {
     let mounted = true
-    if (!sessionId) return
+    if (!sessionId) {
+      // Wenn keine session_id, direkt zum Dashboard
+      router.push('/dashboard')
+      return
+    }
 
-    const verifySession = async () => {
-      // Placeholder für echte Session-Verifizierung
-      await Promise.resolve()
-      if (mounted) {
-        setLoading(false)
+    const refreshSession = async () => {
+      try {
+        // 🔥 WICHTIG: Session nach Stripe Redirect refreshen
+        const supabase = createClient()
+        
+        // Refresh die Auth Session
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error('Session refresh error:', error)
+        } else if (session) {
+          console.log('✅ Session erfolgreich refreshed nach Checkout')
+        }
+
+        // Kurze Verzögerung, damit Session gesetzt wird
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        if (mounted) {
+          setLoading(false)
+          // Nach 2 Sekunden zum Dashboard weiterleiten
+          setTimeout(() => {
+            router.push('/dashboard')
+          }, 2000)
+        }
+      } catch (error) {
+        console.error('Error refreshing session:', error)
+        if (mounted) {
+          setLoading(false)
+          // Auch bei Fehler zum Dashboard weiterleiten
+          setTimeout(() => {
+            router.push('/dashboard')
+          }, 2000)
+        }
       }
     }
 
-    verifySession()
+    refreshSession()
 
     return () => {
       mounted = false
     }
-  }, [sessionId])
+  }, [sessionId, router])
 
   if (loading) {
     return (

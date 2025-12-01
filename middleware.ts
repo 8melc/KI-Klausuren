@@ -66,10 +66,25 @@ export async function middleware(request: NextRequest) {
 
 
   // Refresh session if expired - required for Server Components
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  await supabase.auth.getUser()
-
-
+  // 🔥 WICHTIG: Nach Stripe Redirect Session refreshen
+  // Wenn User nicht eingeloggt ist, aber auf geschützte Route zugreift,
+  // versuche Session zu refreshen (für Stripe Redirects)
+  if (!user && (request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/checkout/success'))) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        // Session existiert, versuche zu refreshen
+        await supabase.auth.refreshSession()
+      }
+    } catch (error) {
+      // Ignoriere Fehler beim Refresh
+      console.error('Session refresh error in middleware:', error)
+    }
+  }
 
   return supabaseResponse
 
