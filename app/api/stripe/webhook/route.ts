@@ -1,133 +1,116 @@
-import Stripe from 'stripe'
-import { headers } from 'next/headers'
-import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { NextResponse } from 'next/server';
+import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-11-20.acacia',
+});
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // Wichtig: Service Role Key, nicht anon key!
+);
 
 export async function POST(req: Request) {
-  const body = await req.text()
-  const headersList = await headers()
-  const sig = headersList.get('stripe-signature')
-
-  if (!sig) {
-    return new NextResponse('Webhook error: Keine Signatur', { status: 400 })
-  }
-
-  // Prüfe ob Stripe Secret Key konfiguriert ist
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return new NextResponse('Webhook error: STRIPE_SECRET_KEY ist nicht konfiguriert', { status: 500 })
-  }
-
-  // Prüfe ob Webhook Secret konfiguriert ist
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
-    return new NextResponse('Webhook error: STRIPE_WEBHOOK_SECRET ist nicht konfiguriert', { status: 500 })
-  }
-
-  // Prüfe ob Supabase Service Role Key konfiguriert ist
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return new NextResponse('Webhook error: SUPABASE_SERVICE_ROLE_KEY ist nicht konfiguriert', { status: 500 })
-  }
-
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    return new NextResponse('Webhook error: NEXT_PUBLIC_SUPABASE_URL ist nicht konfiguriert', { status: 500 })
-  }
-
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-
-  let event: Stripe.Event
+  const body = await req.text();
+  const sig = req.headers.get('stripe-signature')!;
+  
+  let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(
       body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    )
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
   } catch (err: any) {
-    return new NextResponse(`Webhook error: ${err.message}`, { status: 400 })
+    console.error('❌ Webhook signature verification failed:', err.message);
+    return NextResponse.json({ error: 'Webhook Error' }, { status: 400 });
   }
 
+  // Handle checkout.session.completed event
   if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session
+    const session = event.data.object as Stripe.Checkout.Session;
     
-    // DEBUG LOGS - zum Testen
     console.log('🔍 Session empfangen:', {
       sessionId: session.id,
-      customer_email: session.customer_details?.email,
+      customer_email: session.customer_email,
       metadata: session.metadata,
       has_metadata: !!session.metadata,
       metadata_keys: session.metadata ? Object.keys(session.metadata) : []
-    })
-    
-    const userId = session.metadata?.userId
-    console.log('📝 UserId aus metadata:', userId)
-    
+    });
+
+    const userId = session.metadata?.userId;
+
     if (!userId) {
-      console.warn('❌ Webhook: Keine userId in session.metadata')
-      console.warn('Full session object:', JSON.stringify(session, null, 2))
-      return NextResponse.json({ received: true })
+      console.error('❌ Keine userId in metadata gefunden');
+      return NextResponse.json({ received: true }, { status: 200 });
     }
 
-    // Verwende Service Role Key für Webhook (umgeht RLS)
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    )
+    console.log('📝 UserId aus metadata:', userId);
 
-    if (session.metadata?.type === 'CREDITS_25') {
-      // Füge 25 Credits hinzu via RPC-Funktion
-      const { error } = await supabase.rpc('add_credits', {
-        user_id: userId,
-        amount: 25,
-      })
+    // 🔥 WICHTIG: Prüfen ob User existiert
+    const { data: existingUser, error: fetchError } = await supabase
+      .from('users')
+      .select('id, credits')
+      .eq('id', userId)
+      .maybeSingle(); // maybeSingle() statt single() - kein Error bei "not found"
 
-      if (error) {
-        console.error('Error adding credits:', error)
-        return new NextResponse(`Webhook error: ${error.message}`, { status: 500 })
+    if (fetchError) {
+      console.error('❌ Fehler beim User-Fetch:', fetchError);
+      return NextResponse.json({ received: true }, { status: 200 });
+    }
+
+    // Wenn User nicht existiert, erstellen
+    if (!existingUser) {
+      console.log('🆕 User existiert nicht, erstelle neuen User');
+      const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert([{ 
+          id: userId, 
+          credits: 1  // 1 Free Credit beim Erstellen
+        }])
+        .select()
+        .single();
+        
+      if (createError) {
+        console.error('❌ Fehler beim User-Erstellen:', createError);
+        return NextResponse.json({ received: true }, { status: 200 });
       }
-
-      console.log(`Added 25 credits to user ${userId} after payment (CREDITS_25)`)
+      console.log('✅ Neuer User erstellt:', newUser);
     }
 
-    // Speichere Payment in payments Tabelle (optional)
-    if (session.mode === 'payment' && session.payment_intent) {
-      await supabase.from('payments').insert({
-        user_id: userId,
-        stripe_payment_intent_id: session.payment_intent as string,
-        amount: session.amount_total,
-        currency: session.currency || 'eur',
-        status: 'completed',
-      })
-    }
-
-    // Handle Subscriptions (falls später benötigt)
-    if (session.mode === 'subscription' && session.subscription) {
-      await supabase.from('subscriptions').upsert({
-        user_id: userId,
-        stripe_subscription_id: session.subscription as string,
-        status: 'active',
-        updated_at: new Date().toISOString(),
-      })
-    }
-  }
-
-  // Handle Subscription Updates
-  if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
-    const subscription = event.data.object as Stripe.Subscription
+    // Jetzt Credits hinzufügen (25 für den Kauf)
+    const creditsToAdd = 25;
+    const currentCredits = existingUser?.credits || 1;
     
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    )
-
-    await supabase
-      .from('subscriptions')
-      .update({
-        status: subscription.status,
-        updated_at: new Date().toISOString(),
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
+      .update({ 
+        credits: currentCredits + creditsToAdd 
       })
-      .eq('stripe_subscription_id', subscription.id)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('❌ Fehler beim Credits-Update:', updateError);
+      return NextResponse.json({ received: true }, { status: 200 });
+    }
+
+    console.log('✅ Credits erfolgreich hinzugefügt:', {
+      userId,
+      vorher: currentCredits,
+      hinzugefügt: creditsToAdd,
+      nachher: updatedUser.credits
+    });
+
+    return NextResponse.json({ 
+      received: true,
+      creditsAdded: creditsToAdd,
+      totalCredits: updatedUser.credits
+    }, { status: 200 });
   }
 
-  return NextResponse.json({ received: true })
+  return NextResponse.json({ received: true }, { status: 200 });
 }
-
-

@@ -2,24 +2,24 @@ import Link from 'next/link';
 
 const features = [
   {
-    title: 'Handschrift-OCR',
-    description: 'Scans und PDFs werden sauber erkannt – auch bei Schnellschriften.',
+    title: 'Liest unleserliche Handschriften',
+    description: 'Scans und PDFs werden zuverlässig erfasst – auch bei Schnellschriften und Randnotizen.',
   },
   {
-    title: 'Erwartungshorizont',
-    description: 'Upload als Bewertungsbasis sorgt für faire, konsistente Noten.',
+    title: 'Bewertung nach Erwartungshorizont',
+    description: 'Upload als Bewertungsbasis sorgt für faire, konsistente Noten pro Aufgabe.',
   },
   {
-    title: 'Automatische Bepunktung',
-    description: 'Teilpunkte, Plausibilitätschecks und klare Punktespiegel pro Aufgabe.',
+    title: 'Automatische Teilpunkte',
+    description: 'Plausibilitätschecks, Punktespiegel und klare Begründungen pro Aufgabe.',
   },
   {
-    title: 'DOCX-Feedback',
-    description: 'Export als Word mit Kommentaren, Punktespiegel und Klassenhinweisen.',
+    title: 'Korrigiertes Word-Dokument',
+    description: 'Export als DOCX mit Kommentaren am Rand, Punktespiegel und Klassenhinweisen.',
   },
   {
-    title: 'Batch-Korrektur',
-    description: 'Bis zu 10 Klausuren parallel in 4–6 Minuten durchlaufen lassen.',
+    title: 'Ganzen Klassensatz hochladen',
+    description: 'Bis zu 10 Klausuren auf einmal hochladen – fertig in 4–6 Minuten.',
   },
 ];
 
@@ -72,7 +72,7 @@ const faqs = [
 const stats = [
   { label: 'Zeitersparnis', value: '-75%' },
   { label: 'Durchlauf', value: '4–6 Min' },
-  { label: 'Batch', value: '10 PDFs' },
+  { label: 'Klassensatz', value: '10 PDFs' },
   { label: 'Fairness', value: 'konstant' },
 ];
 
@@ -82,22 +82,22 @@ export default function Home() {
       <section className="hero" id="hero">
         <div className="container">
           <div className="hero-content">
-            <p className="hero-tag">1 kostenlose Testklausur · danach 25 Credits für 7,90 €</p>
+            <p className="hero-tag">Erste Klausur kostenlos ausprobieren · Early Access: 25 Credits für 7,90 € (statt später 29 €)</p>
             <h1 className="hero-title">Korrigieren Sie eine Klasse in Minuten statt Stunden.</h1>
             <p className="hero-subtitle">
               KorrekturPilot automatisiert die komplette Klausurkorrektur: Handschrift-OCR,
-              Bewertung nach Erwartungshorizont, Teilpunkte und DOCX-Feedback. So bleibt Zeit für
-              pädagogisches Feedback.
+              Bewertung nach Erwartungshorizont, Teilpunkte und DOCX-Feedback. Holen Sie sich zuerst den
+              Aha-Moment mit einer kostenlosen Klausur – sichern Sie danach den Early-Access-Preis.
             </p>
             <div className="hero-cta-group">
               <Link href="/expectation" className="primary-button">
-                <span>Jetzt kostenlos testen</span>
+                <span>Kostenlose Klausur starten</span>
               </Link>
-              <Link href="#example" className="secondary-button">
+              <Link href="#pricing" className="secondary-button">
+                <span>Early Access sichern</span>
+              </Link>
+              <Link href="#example" className="text-link">
                 <span>Beispiel ansehen</span>
-              </Link>
-              <Link href="#steps" className="text-link">
-                Step-by-Step →
               </Link>
             </div>
             <div className="feature-grid" style={{ marginTop: 'var(--spacing-xl)' }}>
@@ -165,6 +165,33 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="module-section" id="value">
+        <div className="container">
+          <h2 className="section-title">Rechnen Sie Ihren Samstag durch.</h2>
+          <p className="section-description">Eine Klasse korrigieren dauert ca. 5 Stunden. Mit KorrekturPilot ca. 30 Minuten.</p>
+          <div className="module-grid">
+            <div className="module-card">
+              <h3>Was ist Ihnen Ihre Zeit wert?</h3>
+              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
+                Für den Preis von zwei Cappuccinos (7,90 €) kaufen Sie sich 4 Stunden Freizeit. Eine Klasse weniger am Samstag,
+                mehr Zeit für Familie oder Vorbereitung.
+              </p>
+            </div>
+            <div className="module-card">
+              <h3>Konkreter Vergleich</h3>
+              <ul style={{ lineHeight: 1.6, color: 'var(--color-gray-700)', paddingLeft: 'var(--spacing-lg)' }}>
+                <li>Manuell: ~5 Stunden pro Klasse</li>
+                <li>Mit KorrekturPilot: ~30 Minuten</li>
+                <li>Ersparnis: ~4,5 Stunden pro Durchgang</li>
+              </ul>
+              <p style={{ marginTop: 'var(--spacing-md)', color: 'var(--color-gray-700)' }}>
+                Rechnen Sie hoch: Jede Klasse spart Ihnen einen halben Arbeitstag.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="how-it-works" id="steps">
         <div className="container">
           <h2 className="section-title">In 4 Schritten zur fertigen DOCX-Korrektur.</h2>
@@ -182,6 +209,9 @@ export default function Home() {
               </div>
             ))}
           </div>
+          <div className="beta-note" style={{ marginTop: 'var(--spacing-xl)' }}>
+            <strong>Hinweis für Tester:</strong> Bitte schwärzen Sie die Namen der Schüler vor dem Scan oder nutzen Sie anonymisierte Klausuren. So sind Sie datenschutzrechtlich auf der sicheren Seite.
+          </div>
         </div>
       </section>
 
@@ -191,7 +221,7 @@ export default function Home() {
           <p className="section-description">
             Sauberes Word-Dokument mit Punktespiegel, kommentierten Aufgaben und kurzer Rückmeldung an die Klasse.
           </p>
-          <div className="module-grid">
+            <div className="module-grid">
             <div className="module-card">
               <h3>DOCX-Feedback</h3>
               <p>Feedback.docx · 4 Seiten · Exportiert am 10. März</p>
@@ -213,6 +243,29 @@ export default function Home() {
                 Zeitbedarf: 4–6 Minuten für bis zu 10 Klausuren gleichzeitig.
               </p>
             </div>
+            <div className="module-card">
+              <h3>Vorher / Nachher</h3>
+              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
+                Links: handschriftliche Seite. Rechts: automatisch generierte Kommentare und Punkte. Zeigt, dass auch Schnellschriften sicher gelesen werden.
+              </p>
+              <div style={{ marginTop: 'var(--spacing-md)', display: 'grid', gap: 'var(--spacing-sm)', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+                <div style={{ border: '1px dashed var(--color-gray-300)', borderRadius: 'var(--radius-lg)', padding: 'var(--spacing-lg)', textAlign: 'center', color: 'var(--color-gray-600)' }}>
+                  Platzhalter: Scan einer handschriftlichen Seite
+                </div>
+                <div style={{ border: '1px dashed var(--color-primary)', borderRadius: 'var(--radius-lg)', padding: 'var(--spacing-lg)', textAlign: 'center', color: 'var(--color-gray-600)' }}>
+                  Platzhalter: Kommentar-/Punkte-Overlay
+                </div>
+              </div>
+            </div>
+            <div className="module-card">
+              <h3>Screenshot des DOCX</h3>
+              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
+                Fertiges Word-Dokument mit Randkommentaren, Punktespiegel und ausgefülltem Erwartungshorizont.
+              </p>
+              <div style={{ marginTop: 'var(--spacing-md)', border: '1px dashed var(--color-gray-300)', borderRadius: 'var(--radius-lg)', padding: 'var(--spacing-lg)', textAlign: 'center', color: 'var(--color-gray-600)' }}>
+                Platzhalter: Screenshot des DOCX-Exports
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -221,40 +274,43 @@ export default function Home() {
         <div className="container">
           <div className="pricing-header">
             <h2 className="section-title">Sofort starten, fair bezahlen.</h2>
-            <p className="section-description">Eine kostenlose Testklausur. Danach Credits buchen, wenn es passt.</p>
+            <p className="section-description">Erste Klausur kostenlos ausprobieren. Early-Access-Preis nur für kurze Zeit: 7,90 € statt 29 €.</p>
           </div>
           <div className="pricing-grid">
-            <div className="pricing-card pricing-card-highlighted">
-              <p className="pricing-badge">Testen</p>
+            <div className="pricing-card">
+              <p className="pricing-badge">Erste Klausur inklusive</p>
               <div className="pricing-card-header">
-                <h3>1 kostenlose Klausur</h3>
+                <h3>1 Klausur</h3>
                 <p className="pricing-card-price">0 €</p>
               </div>
-              <p className="pricing-card-description">Volle Funktionalität, keine Zahlungsdaten erforderlich.</p>
+              <p className="pricing-card-description">Starten Sie sofort, erleben Sie den Ablauf und sehen Sie das Ergebnis, bevor Sie zahlen.</p>
               <ul className="pricing-card-features">
                 <li>Erwartungshorizont-Upload</li>
                 <li>Handschrift-OCR</li>
                 <li>DOCX-Feedback</li>
               </ul>
-              <Link href="/expectation" className="primary-button pricing-button">
-                Jetzt gratis testen
+              <Link href="/expectation" className="secondary-button pricing-button">
+                Erste Korrektur starten
               </Link>
             </div>
-            <div className="pricing-card">
-              <p className="pricing-badge">Credits</p>
+            <div className="pricing-card pricing-card-highlighted">
+              <p className="pricing-badge">Early Access Deal</p>
               <div className="pricing-card-header">
-                <h3>25 Credits</h3>
-                <p className="pricing-card-price">7,90 €</p>
+                <h3>25 Klausuren</h3>
+                <p className="pricing-card-price">7,90 € <span>/ statt 29 €</span></p>
               </div>
-              <p className="pricing-card-description">1 Credit = 1 korrigierte Klausur. Ideal für eine Klasse.</p>
+              <p className="pricing-card-description">Nach dem Aha-Moment die restlichen Klausuren vom Tisch räumen.</p>
               <ul className="pricing-card-features">
-                <li>Batch-Korrektur bis 10 PDFs</li>
+                <li>Ganzen Klassensatz auf einmal hochladen</li>
                 <li>Erwartungshorizont als Grundlage</li>
                 <li>Export als DOCX</li>
                 <li>Fairness &amp; Konsistenz gesichert</li>
               </ul>
-              <Link href="/upload" className="secondary-button pricing-button">
-                Credits sichern
+              <p style={{ color: 'var(--color-gray-700)' }}>
+                100% Zufriedenheitsgarantie: Wenn Ihnen die Korrektur keine Zeit spart, erhalten Sie Ihr Geld sofort zurück. Umgerechnet 0,31 € pro Klausur – weniger als 2 Minuten Arbeitszeit.
+              </p>
+              <Link href="/upload" className="primary-button pricing-button">
+                Early Access sichern
               </Link>
             </div>
           </div>
@@ -272,6 +328,57 @@ export default function Home() {
                 <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>{item.a}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="module-section" id="social-proof">
+        <div className="container">
+          <h2 className="section-title">Gemeinsam mit den ersten 20 Pionieren.</h2>
+          <p className="section-description">Transparenz statt gekaufter Zitate: Wir starten mit einer kleinen, engagierten Gruppe.</p>
+          <div className="module-grid">
+            <div className="module-card">
+              <h3>Pionier-Programm</h3>
+              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
+                Werde eine:r von 20 Pionier:innen, die KorrekturPilot jetzt schon nutzen. Direkter Draht zum Team,
+                schneller Support und Einfluss auf die nächsten Features.
+              </p>
+            </div>
+            <div className="module-card">
+              <h3>Warum jetzt einsteigen?</h3>
+              <ul style={{ lineHeight: 1.6, color: 'var(--color-gray-700)', paddingLeft: 'var(--spacing-lg)' }}>
+                <li>Early-Access-Preis sichern (7,90 € statt 29 €)</li>
+                <li>Erste Klausur kostenlos – Aha-Moment vor der Bezahlschranke</li>
+                <li>Priorisierter Support und Feedback-Kanal</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="module-section" id="trust">
+        <div className="container">
+          <h2 className="section-title">Vertrauen &amp; Sicherheit zuerst.</h2>
+          <p className="section-description">Datenschutz, Support und klare Ansprechpartner – bevor Sie etwas hochladen.</p>
+          <div className="module-grid">
+            <div className="module-card">
+              <h3>Anonymisierung</h3>
+              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
+                Hinweis für Tester: Bitte schwärzen Sie die Namen der Schüler vor dem Scan oder nutzen Sie anonymisierte Klausuren. So sind Sie datenschutzrechtlich zu 100% auf der sicheren Seite.
+              </p>
+            </div>
+            <div className="module-card">
+              <h3>Geld-zurück-Garantie</h3>
+              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
+                100% Zufriedenheitsgarantie: Wenn die Korrektur Ihnen keine Zeit spart, bekommen Sie Ihr Geld sofort zurück.
+              </p>
+            </div>
+            <div className="module-card">
+              <h3>Kontakt &amp; Support</h3>
+              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
+                Fragen an die Entwickler? Schreiben Sie an <a href="mailto:hello@korrekturpilot.de" className="text-link">hello@korrekturpilot.de</a>. Made with ❤️ in Deutschland.
+              </p>
+            </div>
           </div>
         </div>
       </section>
