@@ -49,8 +49,11 @@ export async function POST(request: NextRequest) {
     if (downloadError || !fileData) {
       console.error('Fehler beim Laden der Datei aus Supabase Storage:', downloadError);
       
-      // Spezielle Behandlung für 403-Fehler
-      if (downloadError?.statusCode === '403' || downloadError?.message?.includes('row-level security')) {
+      // Spezielle Behandlung für 403-Fehler (RLS etc.)
+      const errorStatus = (downloadError as any)?.status;
+      const errorMessage = (downloadError as any)?.message ?? '';
+
+      if (errorStatus === 403 || errorMessage.includes('row-level security')) {
         return NextResponse.json(
           { error: 'Zugriff verweigert — diese Datei gehört einem anderen Benutzer' },
           { status: 403 }
