@@ -7,110 +7,84 @@ import { createClient } from '@/lib/supabase/client'
 export default function AuthCallbackClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClient()
-  const [status, setStatus] = useState<"loading" | "error" | "success">("loading")
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function handleAuth() {
+    const handleCallback = async () => {
       try {
-        // Hole den Code aus der URL
-        const code = searchParams.get("code")
+        // Get all URL parameters
+        const code = searchParams.get('code')
+        const errorParam = searchParams.get('error')
+        const errorDescription = searchParams.get('error_description')
         
+        console.log('Auth callback params:', { code, errorParam, errorDescription })
+        
+        // Handle OAuth errors from provider
+        if (errorParam) {
+          console.error('OAuth provider error:', errorParam, errorDescription)
+          setError(`OAuth-Fehler: ${errorDescription || errorParam}`)
+          setTimeout(() => router.push('/'), 3000)
+          return
+        }
+        
+        // Check for auth code
         if (!code) {
-          setStatus("error")
-          setErrorMessage("Kein Auth-Code gefunden")
-          setTimeout(() => router.replace("/"), 3000)
+          console.error('No auth code in URL. Full URL:', window.location.href)
+          setError('Kein Auth-Code gefunden')
+          setTimeout(() => router.push('/'), 3000)
           return
         }
-
-        // Tausche Code gegen Session
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-
-        if (error) {
-          console.error("Auth Callback Error:", error)
-          setStatus("error")
-          setErrorMessage(error.message || "Authentifizierung fehlgeschlagen")
-          setTimeout(() => router.replace("/"), 3000)
+        
+        // Exchange code for session
+        const supabase = createClient()
+        console.log('Exchanging code for session...')
+        
+        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        
+        if (exchangeError) {
+          console.error('Error exchanging code for session:', exchangeError)
+          setError(`Authentifizierung fehlgeschlagen: ${exchangeError.message}`)
+          setTimeout(() => router.push('/'), 3000)
           return
         }
-
+        
         if (data.session) {
-          setStatus("success")
-          
-          // Prüfe ob User neu ist (erste Session) für Welcome-Banner
-          const { data: { user } } = await supabase.auth.getUser()
-          let redirectPath = "/dashboard"
-          
-          if (user) {
-            // Prüfe ob User-Eintrag existiert (neu registriert)
-            const { data: userProfile } = await supabase
-              .from('users')
-              .select('created_at')
-              .eq('id', user.id)
-              .single()
-
-            // Wenn User-Eintrag sehr neu ist (< 1 Minute), zeige Welcome-Banner
-            if (userProfile) {
-              const createdAt = new Date(userProfile.created_at)
-              const now = new Date()
-              const diffMinutes = (now.getTime() - createdAt.getTime()) / 1000 / 60
-              
-              if (diffMinutes < 1) {
-                redirectPath = "/dashboard?welcome=true"
-              }
-            }
-          }
-          
-          // Kurze Verzögerung, damit Session gespeichert wird
-          setTimeout(() => {
-            router.replace(redirectPath)
-          }, 500)
+          console.log('Session created successfully')
+          router.push('/dashboard')
         } else {
-          setStatus("error")
-          setErrorMessage("Keine Session erhalten")
-          setTimeout(() => router.replace("/"), 3000)
+          console.error('No session created despite successful exchange')
+          setError('Session konnte nicht erstellt werden')
+          setTimeout(() => router.push('/'), 3000)
         }
+        
       } catch (err) {
-        console.error("Unexpected error in auth callback:", err)
-        setStatus("error")
-        setErrorMessage("Unerwarteter Fehler")
-        setTimeout(() => router.replace("/"), 3000)
+        console.error('Unexpected error in auth callback:', err)
+        setError('Ein unerwarteter Fehler ist aufgetreten')
+        setTimeout(() => router.push('/'), 3000)
       }
     }
 
-    handleAuth()
-  }, [searchParams, router, supabase])
-
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="processing-spinner mx-auto mb-4" aria-hidden />
-          <p className="text-gray-600">Authentifiziere…</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (status === "error") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center max-w-md">
-          <div className="text-red-500 text-4xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Authentifizierung fehlgeschlagen</h1>
-          <p className="text-gray-600 mb-4">{errorMessage}</p>
-          <p className="text-sm text-gray-500">Du wirst zur Startseite weitergeleitet…</p>
-        </div>
-      </div>
-    )
-  }
+    handleCallback()
+  }, [searchParams, router])
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <div className="text-green-500 text-4xl mb-4">✅</div>
-        <p className="text-gray-600">Erfolgreich eingeloggt! Weiterleitung…</p>
+        {error ? (
+          <>
+            <div className="text-yellow-600 text-4xl mb-4">⚠️</div>
+            <h2 className="text-xl font-semibold mb-2 text-red-600">
+              Authentifizierung fehlgeschlagen
+            </h2>
+            <p className="text-gray-600 mb-2">{error}</p>
+            <p className="text-sm text-gray-500">Du wirst zur Startseite weitergeleitet...</p>
+          </>
+        ) : (
+          <>
+            <h2 className="text-xl font-semibold mb-2">Authentifizierung läuft...</h2>
+            <p className="text-gray-600">Sie werden gleich weitergeleitet.</p>
+          </>
+        )}
       </div>
     </div>
   )
