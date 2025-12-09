@@ -19,9 +19,9 @@ export async function POST(request: NextRequest) {
 
   // Prüfe Credits
   const { data: userData, error: userError } = await executeWithRetry(
-    (client) => {
+    async (client) => {
       const sb = client ?? supabase;
-      return sb
+      return await sb
         .from('users')
         .select('credits')
         .eq('id', user.id)
@@ -102,9 +102,9 @@ export async function POST(request: NextRequest) {
 
     // Nach erfolgreicher Analyse: Verbrauche 1 Credit via RPC
     const { error: creditError } = await executeWithRetry(
-      (client) => {
+      async (client) => {
         const sb = client ?? supabase;
-        return sb.rpc('add_credits', {
+        return await sb.rpc('add_credits', {
           user_id: user.id,
           amount: -1,
         });
@@ -126,9 +126,9 @@ export async function POST(request: NextRequest) {
 
     // Hole verbleibende Credits
     const { data: updatedUser } = await executeWithRetry(
-      (client) => {
+      async (client) => {
         const sb = client ?? supabase;
-        return sb
+        return await sb
           .from('users')
           .select('credits')
           .eq('id', user.id)

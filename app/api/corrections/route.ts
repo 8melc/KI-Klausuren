@@ -89,9 +89,9 @@ export async function POST(request: NextRequest) {
     
     const userId = user.id;
     const { data: existing, error: queryError } = await executeWithRetry(
-      (client) => {
+      async (client) => {
         const sb = client ?? supabase;
-        return sb
+        return await sb
           .from('corrections')
           .select('id')
           .eq('user_id', userId)
@@ -118,9 +118,9 @@ export async function POST(request: NextRequest) {
     if (existing) {
       // Update bestehende Korrektur
       const { error } = await executeWithRetry(
-        (client) => {
+        async (client) => {
           const sb = client ?? supabase;
-          return sb
+          return await sb
             .from('corrections')
             .update({
               student_name: body.studentName,
@@ -153,9 +153,9 @@ export async function POST(request: NextRequest) {
     } else {
       // Erstelle neue Korrektur mit der ID aus dem Frontend
       const { error } = await executeWithRetry(
-        (client) => {
+        async (client) => {
           const sb = client ?? supabase;
-          return sb.from('corrections').insert({
+          return await sb.from('corrections').insert({
             id: body.id,
             user_id: userId,
             student_name: body.studentName,
