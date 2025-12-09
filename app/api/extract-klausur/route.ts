@@ -106,35 +106,24 @@ export async function POST(request: NextRequest) {
       { status: 200 },
     );
   } catch (error) {
-    console.error(`[${fileKey || 'Unbekannt'}] Extract-Klausur API error:`, error);
+    console.error('Extract-Klausur API error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
-    
+
     // Spezielle Behandlung für Timeout-Fehler
-    if (errorMessage.includes('timeout') || errorMessage.includes('Timeout') || errorMessage.includes('duration')) {
+    if (errorMessage.toLowerCase().includes('timeout')) {
       return NextResponse.json(
-        { 
-          error: 'Die PDF-Extraktion hat zu lange gedauert (>60 Sekunden). Die Datei könnte zu groß oder komplex sein. Bitte versuche es mit einer kleineren Datei oder teile die Klausur auf.',
-          details: errorMessage
+        {
+          error:
+            'Die Analyse hat zu lange gedauert und wurde abgebrochen. Bitte versuche es mit einer kleineren oder kürzeren Klausur erneut.',
         },
-        { status: 504 } // Gateway Timeout
+        { status: 504 }
       );
     }
-    
-    // Spezielle Behandlung für Gemini API Fehler
-    if (errorMessage.includes('Google') || errorMessage.includes('Gemini') || errorMessage.includes('API')) {
-      return NextResponse.json(
-        { 
-          error: 'Fehler bei der Google Gemini API. Bitte versuche es später erneut.',
-          details: errorMessage
-        },
-        { status: 502 } // Bad Gateway
-      );
-    }
-    
+
     return NextResponse.json(
-      { 
-        error: errorMessage,
-        details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : String(error)) : undefined
+      {
+        error: 'Fehler bei der Extraktion der Klausur.',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
       },
       { status: 500 }
     );
