@@ -1,71 +1,82 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function AuthCallbackClient() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Get all URL parameters
-        const code = searchParams.get('code')
-        const errorParam = searchParams.get('error')
-        const errorDescription = searchParams.get('error_description')
-        
-        console.log('Auth callback params:', { code, errorParam, errorDescription })
-        
-        // Handle OAuth errors from provider
-        if (errorParam) {
-          console.error('OAuth provider error:', errorParam, errorDescription)
-          setError(`OAuth-Fehler: ${errorDescription || errorParam}`)
-          setTimeout(() => router.push('/'), 3000)
-          return
-        }
-        
-        // Check for auth code
-        if (!code) {
-          console.error('No auth code in URL. Full URL:', window.location.href)
-          setError('Kein Auth-Code gefunden')
-          setTimeout(() => router.push('/'), 3000)
-          return
-        }
-        
-        // Exchange code for session
         const supabase = createClient()
-        console.log('Exchanging code for session...')
         
-        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        // Check if we have hash params (implicit flow)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
         
-        if (exchangeError) {
-          console.error('Error exchanging code for session:', exchangeError)
-          setError(`Authentifizierung fehlgeschlagen: ${exchangeError.message}`)
-          setTimeout(() => router.push('/'), 3000)
-          return
+        if (accessToken && refreshToken) {
+          console.log('Using implicit flow (hash params)')
+          
+          // Set session from tokens
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          })
+          
+          if (sessionError) {
+            console.error('Error setting session:', sessionError)
+            setError(`Authentifizierung fehlgeschlagen: ${sessionError.message}`)
+            setTimeout(() => router.push('/'), 3000)
+            return
+          }
+          
+          if (data.session) {
+            console.log('Session created successfully via implicit flow')
+            router.push('/dashboard')
+            return
+          }
         }
         
-        if (data.session) {
-          console.log('Session created successfully')
-          router.push('/dashboard')
-        } else {
-          console.error('No session created despite successful exchange')
-          setError('Session konnte nicht erstellt werden')
-          setTimeout(() => router.push('/'), 3000)
+        // Fallback: Check for PKCE code in query params
+        const urlParams = new URLSearchParams(window.location.search)
+        const code = urlParams.get('code')
+        
+        if (code) {
+          console.log('Using PKCE flow (query params)')
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+          
+          if (exchangeError) {
+            console.error('Error exchanging code:', exchangeError)
+            setError(`Authentifizierung fehlgeschlagen: ${exchangeError.message}`)
+            setTimeout(() => router.push('/'), 3000)
+            return
+          }
+          
+          if (data.session) {
+            console.log('Session created successfully via PKCE')
+            router.push('/dashboard')
+            return
+          }
         }
+        
+        // No auth data found
+        console.error('No access_token or code found')
+        setError('Kein Auth-Code gefunden')
+        setTimeout(() => router.push('/'), 3000)
         
       } catch (err) {
-        console.error('Unexpected error in auth callback:', err)
+        console.error('Unexpected error:', err)
         setError('Ein unerwarteter Fehler ist aufgetreten')
         setTimeout(() => router.push('/'), 3000)
       }
     }
 
     handleCallback()
-  }, [searchParams, router])
+  }, [router])
 
   return (
     <div className="flex min-h-screen items-center justify-center">
