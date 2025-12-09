@@ -1,4 +1,4 @@
-import type { UniversalAnalysis } from './types';
+import type { UniversalAnalysis, UniversalTask } from './types';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -100,7 +100,7 @@ export function normalizeAnalysis(analysis: any): UniversalAnalysis {
   let calculatedMaxPoints = 0;
   let calculatedAchievedPoints = 0;
 
-  tasks.forEach((task) => {
+  tasks.forEach((task: UniversalTask) => {
     // Parse points string "erreichtePunkte/maxPunkte"
     const pointsMatch = task.points.match(/^(\d+)\/(\d+)$/);
     if (pointsMatch) {

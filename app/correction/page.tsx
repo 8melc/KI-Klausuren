@@ -62,29 +62,9 @@ const appendToStorage = (entry: StoredResultEntry) => {
 
 const updateStorageEntry = (id: string, patch: Partial<StoredResultEntry>) => {
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) {
-    console.warn('updateStorageEntry: kein Eintrag im localStorage gefunden', { id, patch });
-    return;
-  }
-  let list: StoredResultEntry[] = [];
-  try {
-    list = JSON.parse(stored);
-  } catch (error) {
-    console.error('updateStorageEntry: JSON.parse fehlgeschlagen', error);
-    return;
-  }
-  const next = list.map((item) =>
-    item.id === id
-      ? {
-          ...item,
-          ...patch,
-          // Sicherheitsnetz: Status & Analyse müssen nach der Analyse wirklich gesetzt sein
-          status: (patch.status as ResultStatus) ?? item.status,
-          analysis: patch.analysis ?? item.analysis,
-        }
-      : item
-  );
-  console.log('updateStorageEntry: aktualisierte Liste', next);
+  if (!stored) return;
+  const list: StoredResultEntry[] = JSON.parse(stored);
+  const next = list.map((item) => (item.id === id ? { ...item, ...patch } : item));
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
 };
 
@@ -368,8 +348,8 @@ export default function CorrectionPage() {
               erreichtePunkte: 0,
               prozent: 0,
               aufgaben: [],
-              zusammenfassung: `Fehler beim Upload: ${errorMsg}`
-            }
+              zusammenfassung: `Fehler beim Upload: ${errorMsg}`,
+            } as any
           });
           
           // Update in Supabase
@@ -419,8 +399,8 @@ export default function CorrectionPage() {
               erreichtePunkte: 0,
               prozent: 0,
               aufgaben: [],
-              zusammenfassung: `Fehler bei der Extraktion: ${errorMessage}`
-            }
+              zusammenfassung: `Fehler bei der Extraktion: ${errorMessage}`,
+            } as any
           });
           
           // Update in Supabase
@@ -456,8 +436,8 @@ export default function CorrectionPage() {
               erreichtePunkte: 0,
               prozent: 0,
               aufgaben: [],
-              zusammenfassung: 'Die PDF-Datei konnte nicht gelesen werden. Bitte prüfe, ob die Datei korrekt ist.'
-            }
+              zusammenfassung: 'Die PDF-Datei konnte nicht gelesen werden. Bitte prüfe, ob die Datei korrekt ist.',
+            } as any
           });
           continue;
         }
@@ -485,8 +465,8 @@ export default function CorrectionPage() {
             erreichtePunkte: 0,
             prozent: 0,
             aufgaben: [],
-            zusammenfassung: `Fehler bei der Analyse: ${errorMessage}`
-          }
+            zusammenfassung: `Fehler bei der Analyse: ${errorMessage}`,
+          } as any
         });
         
         // Update in Supabase

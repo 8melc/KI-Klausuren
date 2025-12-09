@@ -8,13 +8,14 @@ import { executeWithRetry, isJWTExpiredError } from '@/lib/supabase/error-handle
 export async function getUserCredits(userId: string): Promise<number> {
   const supabase = await createClient();
   
-  const { data, error } = await executeWithRetry(() =>
-    supabase
+  const { data, error } = await executeWithRetry(async () => {
+    const result = await supabase
       .from('users')
       .select('credits')
       .eq('id', userId)
-      .single()
-  );
+      .single();
+    return { data: result.data, error: result.error };
+  });
   
   if (error || !data) {
     if (isJWTExpiredError(error)) {
@@ -39,15 +40,16 @@ export async function consumeCredit(userId: string): Promise<boolean> {
   }
   
   // Verbrauche 1 Credit
-  const { error } = await executeWithRetry(() =>
-    supabase
+  const { error } = await executeWithRetry(async () => {
+    const result = await supabase
       .from('users')
       .update({ 
         credits: credits - 1,
         updated_at: new Date().toISOString()
       })
-      .eq('id', userId)
-  );
+      .eq('id', userId);
+    return { data: result.data, error: result.error };
+  });
   
   if (isJWTExpiredError(error)) {
     console.warn('Session expired while consuming credit');
@@ -62,12 +64,13 @@ export async function consumeCredit(userId: string): Promise<boolean> {
 export async function addCredits(userId: string, amount: number): Promise<boolean> {
   const supabase = await createClient();
   
-  const { error } = await executeWithRetry(() =>
-    supabase.rpc('add_credits', {
+  const { error } = await executeWithRetry(async () => {
+    const result = await supabase.rpc('add_credits', {
       user_id: userId,
       amount: amount
-    })
-  );
+    });
+    return { data: result.data, error: result.error };
+  });
   
   if (isJWTExpiredError(error)) {
     console.warn('Session expired while adding credits');
