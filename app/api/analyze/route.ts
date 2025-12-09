@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeKlausur, analyzeKlausurUniversal } from '@/lib/openai';
 import { getCurrentUser } from '@/lib/auth';
-import { createClient } from '@/lib/supabase/server';
+import { createClientFromRequest } from '@/lib/supabase/server';
+import { executeWithRetry, isJWTExpiredError } from '@/lib/supabase/error-handler';
 import type { MasterAnalysisInput } from '@/lib/analysis/types';
 
 export async function POST(request: NextRequest) {
@@ -14,16 +15,28 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const supabase = await createClient();
+  const supabase = createClientFromRequest(request);
 
   // Prüfe Credits
-  const { data: userData, error: userError } = await supabase
-    .from('users')
-    .select('credits')
-    .eq('id', user.id)
-    .single();
+  const { data: userData, error: userError } = await executeWithRetry(
+    (client) => {
+      const sb = client ?? supabase;
+      return sb
+        .from('users')
+        .select('credits')
+        .eq('id', user.id)
+        .single();
+    },
+    supabase
+  );
 
   if (userError || !userData) {
+    if (isJWTExpiredError(userError)) {
+      return NextResponse.json(
+        { error: 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.' },
+        { status: 401 }
+      );
+    }
     return NextResponse.json(
       { error: 'Fehler beim Laden der Credits' },
       { status: 500 }
@@ -52,40 +65,77 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('Starte Analyse...', {
+      klausurTextLength: klausurText.length,
+      erwartungshorizontLength: erwartungshorizont.length,
+      useUniversal: useUniversal || false,
+      studentName: studentName || 'Unbekannt',
+    });
+
     // Verwende neue universelle Analyse wenn useUniversal=true, sonst alte für Rückwärtskompatibilität
     let analysis;
-    if (useUniversal) {
-      const input: MasterAnalysisInput = {
-        klausurText,
-        erwartungshorizont,
-        subject,
-        studentName,
-        className,
-      };
-      analysis = await analyzeKlausurUniversal(input);
-    } else {
-      // Alte Funktion für Rückwärtskompatibilität
-      analysis = await analyzeKlausur(klausurText, erwartungshorizont);
+    try {
+      if (useUniversal) {
+        const input: MasterAnalysisInput = {
+          klausurText,
+          erwartungshorizont,
+          subject,
+          studentName,
+          className,
+        };
+        console.log('Verwende universelle Analyse...');
+        analysis = await analyzeKlausurUniversal(input);
+      } else {
+        // Alte Funktion für Rückwärtskompatibilität
+        console.log('Verwende alte Analyse-Funktion...');
+        analysis = await analyzeKlausur(klausurText, erwartungshorizont);
+      }
+      console.log('Analyse erfolgreich abgeschlossen:', {
+        aufgabenAnzahl: analysis.aufgaben?.length || analysis.tasks?.length || 0,
+        erreichtePunkte: analysis.erreichtePunkte || analysis.meta?.achievedPoints || 0,
+        maxPunkte: analysis.gesamtpunkte || analysis.meta?.maxPoints || 0,
+      });
+    } catch (analysisError) {
+      console.error('Fehler während der Analyse:', analysisError);
+      throw analysisError;
     }
 
     // Nach erfolgreicher Analyse: Verbrauche 1 Credit via RPC
-    const { error: creditError } = await supabase.rpc('add_credits', {
-      user_id: user.id,
-      amount: -1,
-    });
+    const { error: creditError } = await executeWithRetry(
+      (client) => {
+        const sb = client ?? supabase;
+        return sb.rpc('add_credits', {
+          user_id: user.id,
+          amount: -1,
+        });
+      },
+      supabase
+    );
 
     if (creditError) {
-      console.error('Fehler beim Verbrauchen des Credits:', creditError);
-      // Analyse war erfolgreich, aber Credit-Verbrauch fehlgeschlagen
-      // Logge Fehler, aber gib Analyse trotzdem zurück
+      if (isJWTExpiredError(creditError)) {
+        // Session expired - aber Analyse war erfolgreich
+        // Gib Analyse zurück, aber Frontend sollte User zum Login weiterleiten
+        console.warn('Session expired after analysis, but analysis was successful');
+      } else {
+        console.error('Fehler beim Verbrauchen des Credits:', creditError);
+        // Analyse war erfolgreich, aber Credit-Verbrauch fehlgeschlagen
+        // Logge Fehler, aber gib Analyse trotzdem zurück
+      }
     }
 
     // Hole verbleibende Credits
-    const { data: updatedUser } = await supabase
-      .from('users')
-      .select('credits')
-      .eq('id', user.id)
-      .single();
+    const { data: updatedUser } = await executeWithRetry(
+      (client) => {
+        const sb = client ?? supabase;
+        return sb
+          .from('users')
+          .select('credits')
+          .eq('id', user.id)
+          .single();
+      },
+      supabase
+    );
 
     const remainingCredits = updatedUser?.credits || 0;
     

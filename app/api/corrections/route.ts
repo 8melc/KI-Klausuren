@@ -88,13 +88,17 @@ export async function POST(request: NextRequest) {
     }
     
     const userId = user.id;
-    const { data: existing, error: queryError } = await executeWithRetry(() =>
+    const { data: existing, error: queryError } = await executeWithRetry(
+      (client) => {
+        const sb = client ?? supabase;
+        return sb
+          .from('corrections')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('id', body.id)
+          .maybeSingle();
+      },
       supabase
-        .from('corrections')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('id', body.id)
-        .maybeSingle()
     );
 
     if (queryError) {
@@ -113,23 +117,27 @@ export async function POST(request: NextRequest) {
 
     if (existing) {
       // Update bestehende Korrektur
-      const { error } = await executeWithRetry(() =>
+      const { error } = await executeWithRetry(
+        (client) => {
+          const sb = client ?? supabase;
+          return sb
+            .from('corrections')
+            .update({
+              student_name: body.studentName,
+              file_name: body.fileName,
+              course_subject: body.course.subject,
+              course_grade_level: body.course.gradeLevel,
+              course_class_name: body.course.className,
+              course_school_year: body.course.schoolYear,
+              status: mapStatusToDb(body.status),
+              analysis: body.analysis || null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', body.id)
+            .eq('user_id', userId)
+            .select();
+        },
         supabase
-          .from('corrections')
-          .update({
-            student_name: body.studentName,
-            file_name: body.fileName,
-            course_subject: body.course.subject,
-            course_grade_level: body.course.gradeLevel,
-            course_class_name: body.course.className,
-            course_school_year: body.course.schoolYear,
-            status: mapStatusToDb(body.status),
-            analysis: body.analysis || null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', body.id)
-          .eq('user_id', userId)
-          .select()
       );
 
       if (error) {
@@ -144,19 +152,23 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Erstelle neue Korrektur mit der ID aus dem Frontend
-      const { error } = await executeWithRetry(() =>
-        supabase.from('corrections').insert({
-          id: body.id,
-          user_id: userId,
-          student_name: body.studentName,
-          file_name: body.fileName,
-          course_subject: body.course.subject,
-          course_grade_level: body.course.gradeLevel,
-          course_class_name: body.course.className,
-          course_school_year: body.course.schoolYear,
-          status: mapStatusToDb(body.status),
-          analysis: body.analysis || null,
-        })
+      const { error } = await executeWithRetry(
+        (client) => {
+          const sb = client ?? supabase;
+          return sb.from('corrections').insert({
+            id: body.id,
+            user_id: userId,
+            student_name: body.studentName,
+            file_name: body.fileName,
+            course_subject: body.course.subject,
+            course_grade_level: body.course.gradeLevel,
+            course_class_name: body.course.className,
+            course_school_year: body.course.schoolYear,
+            status: mapStatusToDb(body.status),
+            analysis: body.analysis || null,
+          });
+        },
+        supabase
       );
 
       if (error) {

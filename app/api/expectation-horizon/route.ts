@@ -48,12 +48,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Speichere Erwartungshorizont
-    const { error } = await executeWithRetry(() =>
-      supabase.from('expectation_horizons').insert({
-        user_id: user.id,
-        file_name: fileName,
-        content: content,
-      })
+    const { error } = await executeWithRetry(
+      (client) => {
+        const sb = client ?? supabase;
+        return sb.from('expectation_horizons').insert({
+          user_id: user.id,
+          file_name: fileName,
+          content: content,
+        });
+      },
+      supabase
     );
 
     if (error) {
