@@ -88,7 +88,8 @@ export async function POST(request: NextRequest) {
     }
     
     const userId = user.id;
-    const { data: existing, error: queryError } = await executeWithRetry(
+    type CorrectionRow = { id: string };
+    const { data: existing, error: queryError } = await executeWithRetry<CorrectionRow>(
       async (client) => {
         const sb = client ?? supabase;
         return await sb
@@ -117,7 +118,8 @@ export async function POST(request: NextRequest) {
 
     if (existing) {
       // Update bestehende Korrektur
-      const { error } = await executeWithRetry(
+      type CorrectionUpdateResult = unknown;
+      const { error } = await executeWithRetry<CorrectionUpdateResult>(
         async (client) => {
           const sb = client ?? supabase;
           return await sb
@@ -152,7 +154,8 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Erstelle neue Korrektur mit der ID aus dem Frontend
-      const { error } = await executeWithRetry(
+      type CorrectionInsertResult = unknown;
+      const { error } = await executeWithRetry<CorrectionInsertResult>(
         async (client) => {
           const sb = client ?? supabase;
           return await sb.from('corrections').insert({

@@ -18,7 +18,8 @@ export async function POST(request: NextRequest) {
   const supabase = createClientFromRequest(request);
 
   // Prüfe Credits
-  const { data: userData, error: userError } = await executeWithRetry(
+  type UserRow = { credits: number };
+  const { data: userData, error: userError } = await executeWithRetry<UserRow>(
     async (client) => {
       const sb = client ?? supabase;
       return await sb
@@ -125,7 +126,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hole verbleibende Credits
-    const { data: updatedUser } = await executeWithRetry(
+    const { data: updatedUser } = await executeWithRetry<UserRow>(
       async (client) => {
         const sb = client ?? supabase;
         return await sb

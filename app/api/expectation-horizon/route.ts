@@ -48,7 +48,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Speichere Erwartungshorizont
-    const { error } = await executeWithRetry(
+    type ExpectationHorizonInsertResult = unknown;
+    const { error } = await executeWithRetry<ExpectationHorizonInsertResult>(
       async (client) => {
         const sb = client ?? supabase;
         return await sb.from('expectation_horizons').insert({
