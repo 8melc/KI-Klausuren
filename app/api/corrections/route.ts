@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClientFromRequest } from '@/lib/supabase/server';
+import { executeWithRetry, isJWTExpiredError } from '@/lib/supabase/error-handler';
 import type { CourseInfo, ResultStatus } from '@/types/results';
 import type { KlausurAnalyse } from '@/lib/openai';
 
@@ -28,7 +29,36 @@ interface SaveCorrectionRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createClientFromRequest(request);
+    
+    // 1. Versuche Session zu holen
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      console.error('Session error:', sessionError);
+    }
+
+    // 2. Wenn keine Session, versuche zu refreshen
+    let validSession = session;
+    if (!validSession) {
+      console.log('Keine Session gefunden, versuche zu refreshen...');
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (refreshError || !refreshData.session) {
+        console.error('Session refresh fehlgeschlagen:', refreshError);
+        return NextResponse.json(
+          { error: 'Deine Sitzung ist abgelaufen. Bitte melde dich neu an.' },
+          { status: 401 }
+        );
+      }
+      
+      validSession = refreshData.session;
+    }
+
+    // 3. Hole User mit der gültigen Session
     const {
       data: { user },
       error: authError,
@@ -58,18 +88,66 @@ export async function POST(request: NextRequest) {
     }
     
     const userId = user.id;
-    const { data: existing } = await supabase
-      .from('corrections')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('id', body.id)
-      .maybeSingle();
+    const { data: existing, error: queryError } = await executeWithRetry(() =>
+      supabase
+        .from('corrections')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('id', body.id)
+        .maybeSingle()
+    );
+
+    if (queryError) {
+      if (isJWTExpiredError(queryError)) {
+        return NextResponse.json(
+          { error: 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.' },
+          { status: 401 }
+        );
+      }
+      console.error('Supabase query error:', queryError);
+      return NextResponse.json(
+        { error: 'Fehler beim Laden der Korrektur' },
+        { status: 500 }
+      );
+    }
 
     if (existing) {
       // Update bestehende Korrektur
-      const { error } = await supabase
-        .from('corrections')
-        .update({
+      const { error } = await executeWithRetry(() =>
+        supabase
+          .from('corrections')
+          .update({
+            student_name: body.studentName,
+            file_name: body.fileName,
+            course_subject: body.course.subject,
+            course_grade_level: body.course.gradeLevel,
+            course_class_name: body.course.className,
+            course_school_year: body.course.schoolYear,
+            status: mapStatusToDb(body.status),
+            analysis: body.analysis || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', body.id)
+          .eq('user_id', userId)
+          .select()
+      );
+
+      if (error) {
+        if (isJWTExpiredError(error)) {
+          return NextResponse.json(
+            { error: 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.' },
+            { status: 401 }
+          );
+        }
+        console.error('Supabase update error:', error);
+        throw error;
+      }
+    } else {
+      // Erstelle neue Korrektur mit der ID aus dem Frontend
+      const { error } = await executeWithRetry(() =>
+        supabase.from('corrections').insert({
+          id: body.id,
+          user_id: userId,
           student_name: body.studentName,
           file_name: body.fileName,
           course_subject: body.course.subject,
@@ -78,31 +156,16 @@ export async function POST(request: NextRequest) {
           course_school_year: body.course.schoolYear,
           status: mapStatusToDb(body.status),
           analysis: body.analysis || null,
-          updated_at: new Date().toISOString(),
         })
-        .eq('id', body.id)
-        .eq('user_id', userId);
+      );
 
       if (error) {
-        console.error('Supabase update error:', error);
-        throw error;
-      }
-    } else {
-      // Erstelle neue Korrektur mit der ID aus dem Frontend
-      const { error } = await supabase.from('corrections').insert({
-        id: body.id,
-        user_id: userId,
-        student_name: body.studentName,
-        file_name: body.fileName,
-        course_subject: body.course.subject,
-        course_grade_level: body.course.gradeLevel,
-        course_class_name: body.course.className,
-        course_school_year: body.course.schoolYear,
-        status: mapStatusToDb(body.status),
-        analysis: body.analysis || null,
-      });
-
-      if (error) {
+        if (isJWTExpiredError(error)) {
+          return NextResponse.json(
+            { error: 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.' },
+            { status: 401 }
+          );
+        }
         console.error('Supabase insert error:', error);
         console.error('Error details:', JSON.stringify(error, null, 2));
         throw error;

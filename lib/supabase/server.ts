@@ -1,11 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import type { NextRequest } from 'next/server'
 
 export async function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // Wenn Supabase nicht konfiguriert ist, throw einen Fehler
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
       'Supabase URL and API key are required. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment variables.'
@@ -28,10 +28,40 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // Server Component-Case, kann ignoriert werden
           }
+        },
+      },
+    }
+  )
+}
+
+/**
+ * Supabase-Client für API-Routen, liest Cookies direkt aus dem Request.
+ * In Route-Handlern verwenden, nicht cookies() aus next/headers.
+ */
+export function createClientFromRequest(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      'Supabase URL and API key are required. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment variables.'
+    )
+  }
+
+  return createServerClient(
+    supabaseUrl,
+    supabaseAnonKey,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        // In deinen API-Routen musst du aktuell keine Cookies setzen,
+        // daher bleibt setAll hier leer.
+        setAll() {
+          // Intentionally left empty for Route Handlers
         },
       },
     }
