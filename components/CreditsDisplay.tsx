@@ -43,8 +43,35 @@ export default function CreditsDisplay() {
         if (!mounted) return;
 
         if (error) {
-          // Wenn Tabelle noch nicht existiert, ignoriere Fehler
-          if (error.code === 'PGRST116' || error.message.includes('does not exist')) {
+          // Handle JWT expired error
+          if (error.code === 'PGRST301' || error.message?.includes('JWT')) {
+            const { error: refreshError } = await supabase.auth.refreshSession();
+            if (refreshError) {
+              // Redirect to login if refresh fails
+              if (mounted) {
+                setErrorMsg('Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.');
+                setCredits(null);
+                setLoading(false);
+                // Redirect wird durch AuthProvider gehandhabt
+              }
+              return;
+            }
+            // Retry the query after refresh
+            const { data: retryData, error: retryError } = await supabase
+              .from('users')
+              .select('credits')
+              .eq('id', user.id)
+              .single();
+            if (!mounted) return;
+            if (retryError) {
+              console.error('Credits fetch error after refresh:', retryError);
+              setErrorMsg('Fehler beim Laden der Credits.');
+              setCredits(null);
+            } else {
+              setCredits(retryData?.credits ?? 0);
+            }
+          } else if (error.code === 'PGRST116' || error.message.includes('does not exist')) {
+            // Wenn Tabelle noch nicht existiert, ignoriere Fehler
             console.warn('Users table does not exist or user not found:', error);
             setCredits(null);
           } else {

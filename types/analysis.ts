@@ -34,6 +34,10 @@ export interface AnalysisTask {
   pointsReasoning: string; // Begründung der Punktevergabe
   shortEvaluation?: string; // Kurze Bewertung (optional)
   korrekturen?: string[]; // Zusätzliche Korrekturen (für Rückwärtskompatibilität)
+  
+  // Warnung für Zeichnungsaufgaben
+  benoetigtManuelleKorrektur?: boolean; // True wenn Zeichnungsaufgabe mit 0 Punkten
+  warnung?: string; // Warnungstext für UI
 }
 
 /**
@@ -101,11 +105,49 @@ export function mapToParsedAnalysis(analysis: {
     });
   }
 
+  // KRITISCH: Berechne Gesamtpunkte aus Einzelaufgaben (KI kann falsche Werte liefern)
+  const calculatedMaxPoints = analysis.aufgaben.reduce((sum: number, aufgabe: any) => {
+    return sum + (aufgabe.maxPunkte || 0);
+  }, 0);
+  
+  const calculatedAchievedPoints = analysis.aufgaben.reduce((sum: number, aufgabe: any) => {
+    return sum + (aufgabe.erreichtePunkte || 0);
+  }, 0);
+
+  // Verwende berechnete Punkte, falls vorhanden, sonst Fallback auf KI-Werte
+  const gesamtpunkte = calculatedMaxPoints > 0 ? calculatedMaxPoints : analysis.gesamtpunkte;
+  const erreichtePunkte = calculatedAchievedPoints > 0 ? calculatedAchievedPoints : analysis.erreichtePunkte;
+  const prozent = gesamtpunkte > 0 ? (erreichtePunkte / gesamtpunkte) * 100 : analysis.prozent;
+
+  // Berechne Note basierend auf korrektem Prozentsatz (falls gradeLabel falsch ist)
+  // Verwende SEK I Notenschlüssel als Fallback
+  let calculatedNote = gradeLabel;
+  if (prozent > 0) {
+    // Importiere getGradeInfo (wird dynamisch importiert, um Zirkel-Importe zu vermeiden)
+    // Für jetzt verwenden wir eine einfache Berechnung
+    if (prozent >= 98) calculatedNote = "1+";
+    else if (prozent >= 95) calculatedNote = "1";
+    else if (prozent >= 92) calculatedNote = "1−";
+    else if (prozent >= 88) calculatedNote = "2+";
+    else if (prozent >= 80) calculatedNote = "2";
+    else if (prozent >= 74) calculatedNote = "2−";
+    else if (prozent >= 68) calculatedNote = "3+";
+    else if (prozent >= 62) calculatedNote = "3";
+    else if (prozent >= 59) calculatedNote = "3−";
+    else if (prozent >= 53) calculatedNote = "4+";
+    else if (prozent >= 46) calculatedNote = "4";
+    else if (prozent >= 39) calculatedNote = "4−";
+    else if (prozent >= 33) calculatedNote = "5+";
+    else if (prozent >= 26) calculatedNote = "5";
+    else if (prozent >= 19) calculatedNote = "5−";
+    else calculatedNote = "6";
+  }
+
   return {
-    gesamtpunkte: analysis.gesamtpunkte,
-    erreichtePunkte: analysis.erreichtePunkte,
-    prozent: analysis.prozent,
-    note: gradeLabel,
+    gesamtpunkte,
+    erreichtePunkte,
+    prozent,
+    note: calculatedNote,
     strengths: strengths.length > 0 ? strengths : ['Grundlegendes Verständnis der Aufgabenstellung'],
     nextSteps: nextSteps.length > 0 ? nextSteps : [],
     summary: summary,
@@ -168,6 +210,21 @@ export function mapToParsedAnalysis(analysis: {
       const taskId = taskMatch ? taskMatch[1] : `${index + 1}.1`;
       const taskTitle = taskMatch ? taskMatch[2].trim() : aufgabe.aufgabe;
 
+      // Prüfe ob es eine Zeichnungsaufgabe ist
+      const istZeichnungsAufgabe = 
+        taskTitle.toLowerCase().includes('zeichnen') ||
+        taskTitle.toLowerCase().includes('strukturformel') ||
+        taskTitle.toLowerCase().includes('darstellen') ||
+        aufgabe.aufgabe.toLowerCase().includes('zeichnen') ||
+        aufgabe.aufgabe.toLowerCase().includes('strukturformel') ||
+        aufgabe.aufgabe.toLowerCase().includes('darstellen');
+
+      // Warnung für Zeichnungsaufgaben mit 0 Punkten
+      const benoetigtManuelleKorrektur = istZeichnungsAufgabe && aufgabe.erreichtePunkte === 0;
+      const warnung = benoetigtManuelleKorrektur 
+        ? "⚠️ Strukturformel-Aufgabe mit 0 Punkten - Die KI hat Schwierigkeiten bei handgezeichneten Strukturformeln. Bitte manuell überprüfen!"
+        : undefined;
+
       return {
         taskId,
         taskTitle,
@@ -178,6 +235,8 @@ export function mapToParsedAnalysis(analysis: {
         improvementTips: improvementTips.length > 0 ? improvementTips : [],
         pointsReasoning: `Die Schülerin/der Schüler erreichte ${aufgabe.erreichtePunkte} von ${aufgabe.maxPunkte} Punkten.`,
         korrekturen: aufgabe.korrekturen || [],
+        benoetigtManuelleKorrektur,
+        warnung,
       };
     }),
   };

@@ -299,3 +299,4 @@ export function createClient(): SupabaseClient {
 2. **Optional:** Google OAuth Flow testen (wenn OAuth konfiguriert ist)
 3. **Optional:** CreditsDisplay prüfen (warum wird es nicht angezeigt?)
 
+f

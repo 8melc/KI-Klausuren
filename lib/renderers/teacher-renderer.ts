@@ -20,6 +20,10 @@ export interface TeacherTaskView {
   improvementHints: string[]; // Verbesserungshinweise
   corrections: string[]; // Korrekturen
   pointsReasoning: string; // Begründung
+  
+  // Warnung für Zeichnungsaufgaben
+  benoetigtManuelleKorrektur?: boolean;
+  warnung?: string;
 }
 
 export interface TeacherSummaryView {
@@ -42,6 +46,8 @@ export function renderTeacherTask(task: AnalysisTask): TeacherTaskView {
     improvementHints: task.improvementTips.map(ensureThirdPerson),
     corrections: (task.korrekturen || []).map(ensureThirdPerson),
     pointsReasoning: ensureThirdPerson(task.pointsReasoning),
+    benoetigtManuelleKorrektur: task.benoetigtManuelleKorrektur,
+    warnung: task.warnung,
   };
 }
 
@@ -95,7 +101,10 @@ function ensureThirdPerson(text: string): string {
  * Rendert die komplette Analyse für Lehrer-Ansicht
  */
 export function renderTeacherResultSection(analysis: ParsedAnalysis, gradeLevel: number = 10) {
-  const percentage = (analysis.erreichtePunkte / analysis.gesamtpunkte) * 100;
+  // WICHTIG: Berechne Prozentsatz aus korrekten Punkten (nicht aus analysis.prozent, das könnte falsch sein)
+  const percentage = analysis.gesamtpunkte > 0 
+    ? (analysis.erreichtePunkte / analysis.gesamtpunkte) * 100 
+    : analysis.prozent;
   const gradeInfo = getGradeInfo({ prozent: percentage, gradeLevel });
   const grade = gradeInfo.label;
   const performanceLevel = getPerformanceLevel(percentage);
@@ -105,7 +114,7 @@ export function renderTeacherResultSection(analysis: ParsedAnalysis, gradeLevel:
     tasks: analysis.aufgaben.map(renderTeacherTask),
     overall: {
       points: `${analysis.erreichtePunkte}/${analysis.gesamtpunkte}`,
-      percentage: analysis.prozent,
+      percentage: percentage, // Verwende berechneten Prozentsatz, nicht analysis.prozent
       note: grade,
       grade: grade,
       performanceLevel: performanceLevel,

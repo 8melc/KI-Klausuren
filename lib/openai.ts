@@ -115,7 +115,37 @@ WICHTIG: Orientiere dich an dieser Vorlage für:
 - Stil: Formuliere Kommentare und Korrekturen im gleichen präzisen, konstruktiven Stil
 - Zusammenfassung: Strukturiere die Zusammenfassung ähnlich (Stärken, Entwicklungsbereiche)
 
-\n` : ''}Bitte analysiere die Klausur anhand des Erwartungshorizonts und gib eine detaillierte Bewertung im folgenden JSON-Format zurück:
+\n` : ''}
+**KRITISCH - VOLLSTÄNDIGKEIT DER ANALYSE:**
+1. Identifiziere ALLE Aufgaben im Erwartungshorizont (z.B. 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4)
+2. Analysiere JEDE dieser Aufgaben - auch wenn der Schüler keine Antwort gegeben hat (dann: 0 Punkte, entsprechende Analyse)
+3. Stelle sicher, dass deine Response GENAU SO VIELE Aufgaben enthält wie im Erwartungshorizont definiert
+4. Wenn eine Aufgabe im Erwartungshorizont fehlt, ist deine Analyse UNVOLLSTÄNDIG und UNBRAUCHBAR
+
+⚠️ KRITISCH WICHTIG FÜR STRUKTURFORMEL-AUFGABEN:
+
+Diese Klausur kann HANDGEZEICHNETE chemische Strukturformeln enthalten.
+
+BEWERTUNGSPRINZIP für Strukturformeln:
+- Ist die KETTENLÄNGE korrekt? (Anzahl C-Atome)
+- Ist die OH-Gruppe am richtigen Ort?
+- Ist die GRUNDSTRUKTUR erkennbar?
+- Gib TEILPUNKTE auch bei unleserlichen aber erkennbaren Strukturen
+- NUR 0 Punkte wenn GAR KEINE Struktur vorhanden oder komplett falsch
+
+BEISPIEL:
+Aufgabe: "Zeichnen Sie die Strukturformel von Ethanol"
+Erwartung: CH3-CH2-OH
+- Schüler zeichnet: Unleserliche Linien mit "OH" → 2/4 Punkte (Struktur erkennbar)
+- Schüler zeichnet: Klare Struktur mit 2 C und OH → 4/4 Punkte
+- Schüler zeichnet: GAR NICHTS → 0/4 Punkte
+
+Für JEDE Aufgabe die eine Zeichnung verlangt:
+- Beschreibe detailliert was du in der Schülerantwort SIEHST
+- Vergleiche mit Erwartung
+- Bewerte großzügig bei unleserlichen aber erkennbaren Strukturen
+
+Bitte analysiere die Klausur anhand des Erwartungshorizonts und gib eine detaillierte Bewertung im folgenden JSON-Format zurück:
 {
   "gesamtpunkte": <maximale Gesamtpunktzahl>,
   "erreichtePunkte": <erreichte Punktzahl>,
@@ -145,6 +175,7 @@ VERBINDLICHE REGELN (MÜSSEN IMMER EINGEHALTEN WERDEN):
 2. ADAPTIVER DETAILGRAD: Passe die Anzahl der Fehlerpunkte und Verbesserungstipps an die erreichte Punktzahl an (siehe ADAPTIVER DETAILGRAD im Prompt).
 3. VOLLSTÄNDIGKEIT: Alle Felder müssen vollständige Sätze enthalten, keine leeren Felder, keine 1-Wort-Stichpunkte.
 4. TON: Neutral, sachlich, formal, fachlich präzise. Keine Umgangssprache.
+5. **KRITISCH - ALLE AUFGABEN ANALYSIEREN: Analysiere JEDE EINZELNE Aufgabe aus dem Erwartungshorizont. KEINE Aufgabe darf fehlen!**
 
 Orientiere dich an der bereitgestellten Vorlage für Stil, Detaillierungsgrad und Struktur der Analyse.`,
         },
@@ -155,6 +186,7 @@ Orientiere dich an der bereitgestellten Vorlage für Stil, Detaillierungsgrad un
       ],
       temperature: 0.3,
       response_format: { type: 'json_object' },
+      max_tokens: 16384, // Erhöhtes Token-Limit für vollständige Analysen
     });
 
     // Token-Usage Tracking
@@ -173,7 +205,25 @@ Orientiere dich an der bereitgestellten Vorlage für Stil, Detaillierungsgrad un
       throw new Error('Keine Antwort von OpenAI erhalten');
     }
 
+    // DEBUG: Zähle Aufgaben im Erwartungshorizont
+    const aufgabenImErwartungshorizont = erwartungshorizont.match(/\d+\.\d+/g) || [];
+    const uniqueAufgaben = [...new Set(aufgabenImErwartungshorizont)];
+    console.log('=== OPENAI RESPONSE DEBUG (alte Funktion) ===');
+    console.log('Anzahl Aufgaben im Erwartungshorizont:', uniqueAufgaben.length);
+    console.log('Aufgaben IDs im Erwartungshorizont:', uniqueAufgaben);
+
     const analysis = JSON.parse(responseText) as KlausurAnalyse;
+    
+    console.log('Anzahl Aufgaben in OpenAI Response:', analysis.aufgaben?.length || 0);
+    console.log('Aufgaben IDs in Response:', analysis.aufgaben?.map(a => a.aufgabe) || []);
+    
+    if (analysis.aufgaben && analysis.aufgaben.length < uniqueAufgaben.length) {
+      console.warn(`⚠️ WARNUNG: Response enthält nur ${analysis.aufgaben.length} Aufgaben, aber Erwartungshorizont hat ${uniqueAufgaben.length} Aufgaben!`);
+      console.warn('Fehlende Aufgaben:', uniqueAufgaben.filter(id => 
+        !analysis.aufgaben?.some(a => a.aufgabe.includes(id))
+      ));
+    }
+    
     return analysis;
   } catch (error) {
     console.error('OpenAI analysis error:', error);

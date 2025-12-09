@@ -10,7 +10,25 @@ export async function buyCredits(): Promise<void> {
   const supabase = createClient()
   
   // Hole aktuellen User
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  
+  if (userError) {
+    // Handle JWT expired error
+    if (userError.message?.includes('JWT') || userError.message?.includes('expired')) {
+      const { error: refreshError } = await supabase.auth.refreshSession()
+      if (refreshError) {
+        throw new Error('Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.')
+      }
+      // Retry after refresh
+      const { data: { user: retryUser } } = await supabase.auth.getUser()
+      if (!retryUser) {
+        throw new Error('Bitte melde dich an, um Credits zu kaufen')
+      }
+      // Continue with retryUser below
+    } else {
+      throw new Error('Fehler beim Laden der Benutzerdaten')
+    }
+  }
   
   if (!user) {
     throw new Error('Bitte melde dich an, um Credits zu kaufen')
@@ -41,5 +59,8 @@ export async function buyCredits(): Promise<void> {
     throw error
   }
 }
+
+
+
 
 

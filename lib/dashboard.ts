@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server';
+import { executeWithRetry, isJWTExpiredError } from '@/lib/supabase/error-handler';
 
 export interface DashboardStats {
   activeExpectationHorizons: number
@@ -33,33 +34,57 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     }
 
   // Zähle aktive Erwartungshorizonte
-  const { count: expectationCount } = await supabase
-    .from('expectation_horizons')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
+  const { count: expectationCount, error: expectationError } = await executeWithRetry(() =>
+    supabase
+      .from('expectation_horizons')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+  );
+
+  if (isJWTExpiredError(expectationError)) {
+    console.warn('Session expired while loading dashboard stats');
+  }
 
   // Zähle abgeschlossene Korrekturen (gesamt)
-  const { count: correctionsCount } = await supabase
-    .from('corrections')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .eq('status', 'completed')
+  const { count: correctionsCount, error: correctionsError } = await executeWithRetry(() =>
+    supabase
+      .from('corrections')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'completed')
+  );
+
+  if (isJWTExpiredError(correctionsError)) {
+    console.warn('Session expired while loading dashboard stats');
+  }
 
   // Zähle laufende Analysen
-  const { count: runningCount } = await supabase
-    .from('corrections')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .eq('status', 'processing')
+  const { count: runningCount, error: runningError } = await executeWithRetry(() =>
+    supabase
+      .from('corrections')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'processing')
+  );
+
+  if (isJWTExpiredError(runningError)) {
+    console.warn('Session expired while loading dashboard stats');
+  }
 
   // Hole letzte Korrekturen (gruppiert nach Fach und Datum)
-  const { data: recentCorrectionsData } = await supabase
-    .from('corrections')
-    .select('id, course_subject, course_grade_level, created_at, student_name')
-    .eq('user_id', user.id)
-    .eq('status', 'completed')
-    .order('created_at', { ascending: false })
-    .limit(20)
+  const { data: recentCorrectionsData, error: recentError } = await executeWithRetry(() =>
+    supabase
+      .from('corrections')
+      .select('id, course_subject, course_grade_level, created_at, student_name')
+      .eq('user_id', user.id)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(20)
+  );
+
+  if (isJWTExpiredError(recentError)) {
+    console.warn('Session expired while loading dashboard stats');
+  }
 
   // Gruppiere nach Fach und Datum
   const groupedCorrections = new Map<string, { count: number; date: Date; subject: string; grade: string }>()

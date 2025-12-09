@@ -31,6 +31,8 @@ export interface UniversalTask {
   teacherCorrections: string[];
   studentFriendlyTips: string[];
   studentAnswerSummary: string;
+  benoetigtManuelleKorrektur?: boolean; // True wenn Zeichnungsaufgabe mit 0 Punkten
+  warnung?: string; // Warnungstext für UI
 }
 
 export interface TeacherConclusion {

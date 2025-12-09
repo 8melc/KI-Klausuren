@@ -65,6 +65,13 @@ export async function middleware(request: NextRequest) {
 
 
 
+  // 🔥 WICHTIG: Auth-Callback nicht stören - lasse Route.ts den Code-Exchange machen
+  if (request.nextUrl.pathname === '/auth/callback') {
+    // Für Auth-Callback: Session refreshen, aber nicht blockieren
+    await supabase.auth.getSession()
+    return supabaseResponse
+  }
+
   // Refresh session if expired - required for Server Components
   const {
     data: { user },
@@ -75,41 +82,8 @@ export async function middleware(request: NextRequest) {
   const checkoutStatus = request.nextUrl.searchParams.get('checkout')
   const isCheckoutRedirect = checkoutStatus === 'success' && request.nextUrl.pathname.startsWith('/dashboard')
   
-  if (isCheckoutRedirect || (!user && (request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/checkout/success')))) {
-    try {
-      // Versuche Session zu holen
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError) {
-        console.error('Session error in middleware:', sessionError)
-      }
-      
-      if (session) {
-        // Session existiert, versuche zu refreshen
-        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
-        
-        if (refreshError) {
-          console.error('Session refresh error in middleware:', refreshError)
-        } else if (refreshedSession) {
-          console.log('✅ Session in middleware refreshed nach Checkout')
-        }
-      } else if (!user) {
-        // Keine Session gefunden - könnte nach Stripe Redirect sein
-        // Versuche explizit zu refreshen
-        try {
-          const { data: { session: newSession } } = await supabase.auth.refreshSession()
-          if (newSession) {
-            console.log('✅ Neue Session in middleware erstellt nach Checkout')
-          }
-        } catch (error) {
-          console.error('Error creating new session in middleware:', error)
-        }
-      }
-    } catch (error) {
-      // Ignoriere Fehler beim Refresh
-      console.error('Unexpected error in middleware session refresh:', error)
-    }
-  }
+  // getUser() refresht automatisch die Session, wenn nötig
+  // Kein manueller refreshSession() Aufruf nötig - das würde zu "Invalid Refresh Token" Fehlern führen
 
   return supabaseResponse
 

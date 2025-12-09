@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import UploadBox from '@/components/UploadBox';
 import CourseSelectionCard from '@/components/CourseSelectionCard';
 import StepHeader from '@/components/StepHeader';
 import UploadedFilesList from '@/components/UploadedFilesList';
 import AnalysisStartSection from '@/components/AnalysisStartSection';
 import type { UploadedFile } from '@/components/UploadBox';
-import { CourseInfo, StoredResultEntry, STORAGE_KEY } from '@/types/results';
+import { CourseInfo, StoredResultEntry, STORAGE_KEY, ResultStatus } from '@/types/results';
+import { ensureValidSession } from '@/lib/supabase/session-validator';
 
 const SUBJECT_OPTIONS = [
   'Mathematik',
@@ -60,9 +62,29 @@ const appendToStorage = (entry: StoredResultEntry) => {
 
 const updateStorageEntry = (id: string, patch: Partial<StoredResultEntry>) => {
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return;
-  const list: StoredResultEntry[] = JSON.parse(stored);
-  const next = list.map((item) => (item.id === id ? { ...item, ...patch } : item));
+  if (!stored) {
+    console.warn('updateStorageEntry: kein Eintrag im localStorage gefunden', { id, patch });
+    return;
+  }
+  let list: StoredResultEntry[] = [];
+  try {
+    list = JSON.parse(stored);
+  } catch (error) {
+    console.error('updateStorageEntry: JSON.parse fehlgeschlagen', error);
+    return;
+  }
+  const next = list.map((item) =>
+    item.id === id
+      ? {
+          ...item,
+          ...patch,
+          // Sicherheitsnetz: Status & Analyse müssen nach der Analyse wirklich gesetzt sein
+          status: (patch.status as ResultStatus) ?? item.status,
+          analysis: patch.analysis ?? item.analysis,
+        }
+      : item
+  );
+  console.log('updateStorageEntry: aktualisierte Liste', next);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
 };
 
@@ -122,44 +144,125 @@ export default function CorrectionPage() {
     localStorage.setItem('courseContext', JSON.stringify(next));
   };
 
+  // Helper-Funktion für 2-Schritt-Upload zu Supabase Storage
+  const uploadFileToStorage = async (file: File): Promise<{ fileKey: string } | null> => {
+    try {
+      // Schritt 1: Hole Upload-URL
+      const urlResponse = await fetch('/api/upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: file.name,
+          fileType: file.type,
+        }),
+      });
+
+      if (!urlResponse.ok) {
+        const errorData = await urlResponse.json().catch(() => ({ error: 'Unbekannter Fehler' }));
+        throw new Error(errorData.error || `HTTP ${urlResponse.status}`);
+      }
+
+      const urlData = await urlResponse.json();
+      const { uploadUrl, fileKey, token, method, warning } = urlData;
+
+      if (warning) {
+        console.warn('Upload-URL Warnung:', warning);
+      }
+
+      // Schritt 2: Lade Datei direkt zu Supabase Storage
+      const uploadMethod = method || 'PUT';
+      const uploadResponse = await fetch(uploadUrl, {
+        method: uploadMethod,
+        headers: {
+          'Content-Type': file.type,
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: file,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload fehlgeschlagen: ${uploadResponse.status} ${uploadResponse.statusText}`);
+      }
+
+      return { fileKey };
+    } catch (error) {
+      console.error('Fehler beim Upload zu Supabase Storage:', error);
+      throw error;
+    }
+  };
+
   const handleExpectationUpload = async (files: UploadedFile[]) => {
     if (!files.length) return;
     const file = files[0];
     setExpectationFileName(file.fileName);
 
-    const formData = new FormData();
-    formData.append('file', file.file);
-
-    const response = await fetch('/api/extract', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      setErrorMessage('Der Erwartungshorizont konnte nicht extrahiert werden.');
+    // 1. SESSION VALIDIERUNG vor Supabase-Call
+    const { session, error: sessionError } = await ensureValidSession();
+    
+    if (sessionError || !session) {
+      const errorMsg = sessionError?.message || 'Deine Sitzung ist abgelaufen. Bitte melde dich neu an.';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
+      router.push('/');
       return;
     }
 
-    const data = await response.json();
-    setExpectationText(data.text);
-    localStorage.setItem('erwartungshorizont', data.text);
-    
-    // Speichere auch in Supabase
     try {
-      await fetch('/api/expectation-horizon', {
+      // 2. Upload zu Supabase Storage
+      toast.info('Lade Erwartungshorizont hoch...');
+      const uploadResult = await uploadFileToStorage(file.file);
+      
+      if (!uploadResult) {
+        setErrorMessage('Upload fehlgeschlagen');
+        return;
+      }
+
+      // 3. Rufe Extract-API mit fileKey auf
+      toast.info('Extrahiere Text aus PDF...');
+      const response = await fetch('/api/extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileName: file.fileName,
-          content: data.text,
-        }),
+        body: JSON.stringify({ fileKey: uploadResult.fileKey }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unbekannter Fehler' }));
+        setErrorMessage(errorData.error || 'Der Erwartungshorizont konnte nicht extrahiert werden.');
+        return;
+      }
+
+      const data = await response.json();
+      setExpectationText(data.text);
+      localStorage.setItem('erwartungshorizont', data.text);
+      
+      // Speichere auch in Supabase (Session ist jetzt garantiert gültig)
+      try {
+        const saveResponse = await fetch('/api/expectation-horizon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: file.fileName,
+            content: data.text,
+          }),
+        });
+        
+        if (!saveResponse.ok) {
+          const errorData = await saveResponse.json().catch(() => ({}));
+          console.error('Fehler beim Speichern in Supabase:', saveResponse.status, errorData);
+          // Nicht kritisch - localStorage funktioniert weiterhin
+        }
+      } catch (error) {
+        console.error('Fehler beim Speichern in Supabase:', error);
+        // Nicht kritisch - localStorage funktioniert weiterhin
+      }
+      
+      toast.success('Erwartungshorizont erfolgreich hochgeladen');
+      setErrorMessage(null);
     } catch (error) {
-      console.error('Fehler beim Speichern in Supabase:', error);
-      // Nicht kritisch - localStorage funktioniert weiterhin
+      const errorMsg = error instanceof Error ? error.message : 'Fehler beim Upload';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
     }
-    
-    setErrorMessage(null);
   };
 
   const handleKlausurUpload = (files: UploadedFile[]) => {
@@ -185,6 +288,17 @@ export default function CorrectionPage() {
     }
     if (uploads.length === 0) {
       setErrorMessage('Bitte laden Sie mindestens eine Klausur hoch.');
+      return;
+    }
+
+    // 1. SESSION VALIDIERUNG vor Supabase-Calls
+    const { session, error: sessionError } = await ensureValidSession();
+    
+    if (sessionError || !session) {
+      const errorMsg = sessionError?.message || 'Deine Sitzung ist abgelaufen. Bitte melde dich neu an.';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
+      router.push('/');
       return;
     }
 
@@ -216,7 +330,7 @@ export default function CorrectionPage() {
           });
           
           if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
+            const errorData: unknown = await response.json().catch(() => ({}));
             console.error('Fehler beim Speichern in Supabase:', response.status, errorData);
           } else {
             console.log('Korrektur erfolgreich in Supabase gespeichert:', entry.id);
@@ -226,15 +340,88 @@ export default function CorrectionPage() {
           // Nicht kritisch - localStorage funktioniert weiterhin
         }
 
-        const formData = new FormData();
-        formData.append('file', upload.file);
+        // 2-Schritt-Upload: Zuerst zu Supabase Storage, dann Extract mit fileKey
+        console.log(`[${upload.fileName}] Starte Upload zu Supabase Storage...`);
+        setAnalysisProgress({ 
+          current: i + 1, 
+          total: uploads.length, 
+          currentFile: `${upload.fileName} (Upload läuft...)` 
+        });
+        
+        let fileKey: string;
+        try {
+          const uploadResult = await uploadFileToStorage(upload.file);
+          if (!uploadResult) {
+            throw new Error('Upload fehlgeschlagen - keine fileKey erhalten');
+          }
+          fileKey = uploadResult.fileKey;
+          console.log(`[${upload.fileName}] Upload erfolgreich, fileKey:`, fileKey);
+        } catch (uploadError) {
+          const errorMsg = uploadError instanceof Error ? uploadError.message : 'Upload fehlgeschlagen';
+          console.error(`[${upload.fileName}] Upload fehlgeschlagen:`, errorMsg);
+          
+          updateStorageEntry(upload.id, { 
+            status: 'Fehler',
+            analysis: {
+              error: `Upload fehlgeschlagen: ${errorMsg}`,
+              gesamtpunkte: 0,
+              erreichtePunkte: 0,
+              prozent: 0,
+              aufgaben: [],
+              zusammenfassung: `Fehler beim Upload: ${errorMsg}`
+            }
+          });
+          
+          // Update in Supabase
+          try {
+            await fetch('/api/corrections', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id: upload.id,
+                studentName: upload.fileName.replace(/\.pdf$/i, ''),
+                fileName: upload.fileName,
+                course,
+                status: 'Fehler',
+              }),
+            });
+          } catch (error) {
+            console.error('Fehler beim Update in Supabase:', error);
+          }
+          
+          continue;
+        }
+        
+        // 3. Rufe Extract-API mit fileKey auf
+        console.log(`[${upload.fileName}] Starte PDF-Extraktion...`);
+        setAnalysisProgress({ 
+          current: i + 1, 
+          total: uploads.length, 
+          currentFile: `${upload.fileName} (Extraktion läuft...)` 
+        });
+        
         const extractResponse = await fetch('/api/extract-klausur', {
           method: 'POST',
-          body: formData,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileKey }),
         });
 
         if (!extractResponse.ok) {
-          updateStorageEntry(upload.id, { status: 'Fehler' });
+          const errorData = await extractResponse.json().catch(() => ({ error: 'Unbekannter Fehler' }));
+          const errorMessage = errorData.error || `HTTP ${extractResponse.status}`;
+          console.error(`[${upload.fileName}] PDF-Extraktion fehlgeschlagen:`, errorMessage);
+          
+          updateStorageEntry(upload.id, { 
+            status: 'Fehler',
+            analysis: {
+              error: `PDF-Extraktion fehlgeschlagen: ${errorMessage}`,
+              gesamtpunkte: 0,
+              erreichtePunkte: 0,
+              prozent: 0,
+              aufgaben: [],
+              zusammenfassung: `Fehler bei der Extraktion: ${errorMessage}`
+            }
+          });
           
           // Update in Supabase
           try {
@@ -257,6 +444,25 @@ export default function CorrectionPage() {
         }
 
         const extracted = await extractResponse.json();
+        console.log(`[${upload.fileName}] PDF-Extraktion erfolgreich:`, extracted.text?.length || 0, 'Zeichen');
+        
+        if (!extracted.text || extracted.text.trim().length === 0) {
+          console.error(`[${upload.fileName}] Kein Text aus PDF extrahiert`);
+          updateStorageEntry(upload.id, { 
+            status: 'Fehler',
+            analysis: {
+              error: 'Kein Text aus PDF extrahiert',
+              gesamtpunkte: 0,
+              erreichtePunkte: 0,
+              prozent: 0,
+              aufgaben: [],
+              zusammenfassung: 'Die PDF-Datei konnte nicht gelesen werden. Bitte prüfe, ob die Datei korrekt ist.'
+            }
+          });
+          continue;
+        }
+        
+        console.log(`[${upload.fileName}] Starte Analyse...`);
         const analysisResponse = await fetch('/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -267,7 +473,21 @@ export default function CorrectionPage() {
         });
 
       if (!analysisResponse.ok) {
-        updateStorageEntry(upload.id, { status: 'Fehler' });
+        const errorData = await analysisResponse.json().catch(() => ({ error: 'Unbekannter Fehler' }));
+        const errorMessage = errorData.error || `HTTP ${analysisResponse.status}`;
+        console.error(`[${upload.fileName}] Analyse fehlgeschlagen:`, errorMessage);
+        
+        updateStorageEntry(upload.id, { 
+          status: 'Fehler',
+          analysis: {
+            error: `Analyse fehlgeschlagen: ${errorMessage}`,
+            gesamtpunkte: 0,
+            erreichtePunkte: 0,
+            prozent: 0,
+            aufgaben: [],
+            zusammenfassung: `Fehler bei der Analyse: ${errorMessage}`
+          }
+        });
         
         // Update in Supabase
         try {
@@ -290,6 +510,12 @@ export default function CorrectionPage() {
       }
 
       const analysis = await analysisResponse.json();
+      console.log(`[${upload.fileName}] Analyse erfolgreich:`, {
+        erreichtePunkte: analysis.erreichtePunkte || analysis.meta?.achievedPoints,
+        maxPunkte: analysis.gesamtpunkte || analysis.meta?.maxPoints,
+        aufgabenAnzahl: analysis.aufgaben?.length || analysis.tasks?.length
+      });
+      
       updateStorageEntry(upload.id, { status: 'Bereit', analysis });
       
       // Update in Supabase
@@ -306,15 +532,20 @@ export default function CorrectionPage() {
             analysis,
           }),
         });
+        console.log(`[${upload.fileName}] Erfolgreich in Supabase gespeichert`);
       } catch (error) {
-        console.error('Fehler beim Update in Supabase:', error);
+        console.error(`[${upload.fileName}] Fehler beim Update in Supabase:`, error);
       }
       }
 
       clearUploads();
+      console.log('Alle Analysen abgeschlossen, weiterleiten zu /results');
       router.push('/results');
     } catch (error) {
-      setErrorMessage('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+      console.error('Kritischer Fehler in handleStartAnalysis:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
+      setErrorMessage(errorMessage);
+      toast.error(errorMessage);
       setIsAnalyzing(false);
       setAnalysisProgress(null);
     }

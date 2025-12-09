@@ -61,19 +61,27 @@ export function validateAnalysis(analysis: any): ValidationResult {
 
 /**
  * Bereinigt und normalisiert die Analyse
+ * WICHTIG: Berechnet Gesamtpunkte aus Einzelaufgaben, nicht aus meta (KI kann falsche Werte liefern)
  */
 export function normalizeAnalysis(analysis: any): UniversalAnalysis {
-  return {
-    meta: {
-      studentName: analysis.meta?.studentName || '',
-      class: analysis.meta?.class || '',
-      subject: analysis.meta?.subject || '',
-      date: analysis.meta?.date || new Date().toISOString().split('T')[0],
-      maxPoints: analysis.meta?.maxPoints || 0,
-      achievedPoints: analysis.meta?.achievedPoints || 0,
-      grade: analysis.meta?.grade || '',
-    },
-    tasks: (analysis.tasks || []).map((task: any) => ({
+  const tasks = (analysis.tasks || []).map((task: any) => {
+    // Prüfe ob es eine Zeichnungsaufgabe ist
+    const istZeichnungsAufgabe = 
+      (task.taskTitle || '').toLowerCase().includes('zeichnen') ||
+      (task.taskTitle || '').toLowerCase().includes('strukturformel') ||
+      (task.taskTitle || '').toLowerCase().includes('darstellen');
+    
+    // Parse points string "erreichtePunkte/maxPunkte"
+    const pointsMatch = (task.points || '0/0').match(/^(\d+)\/(\d+)$/);
+    const erreichtePunkte = pointsMatch ? parseInt(pointsMatch[1], 10) : 0;
+    
+    // Warnung für Zeichnungsaufgaben mit 0 Punkten
+    const benoetigtManuelleKorrektur = istZeichnungsAufgabe && erreichtePunkte === 0;
+    const warnung = benoetigtManuelleKorrektur 
+      ? "⚠️ Strukturformel-Aufgabe mit 0 Punkten - Die KI hat Schwierigkeiten bei handgezeichneten Strukturformeln. Bitte manuell überprüfen!"
+      : undefined;
+    
+    return {
       taskId: task.taskId || '',
       taskTitle: task.taskTitle || '',
       points: task.points || '0/0',
@@ -83,7 +91,44 @@ export function normalizeAnalysis(analysis: any): UniversalAnalysis {
       teacherCorrections: Array.isArray(task.teacherCorrections) ? task.teacherCorrections : [],
       studentFriendlyTips: Array.isArray(task.studentFriendlyTips) ? task.studentFriendlyTips : [],
       studentAnswerSummary: task.studentAnswerSummary || '',
-    })),
+      benoetigtManuelleKorrektur,
+      warnung,
+    };
+  });
+
+  // KRITISCH: Berechne Gesamtpunkte aus Einzelaufgaben (KI kann falsche Werte in meta liefern)
+  let calculatedMaxPoints = 0;
+  let calculatedAchievedPoints = 0;
+
+  tasks.forEach((task) => {
+    // Parse points string "erreichtePunkte/maxPunkte"
+    const pointsMatch = task.points.match(/^(\d+)\/(\d+)$/);
+    if (pointsMatch) {
+      const achieved = parseInt(pointsMatch[1], 10);
+      const max = parseInt(pointsMatch[2], 10);
+      calculatedAchievedPoints += achieved;
+      calculatedMaxPoints += max;
+    }
+  });
+
+  // Verwende berechnete Punkte, falls vorhanden, sonst Fallback auf meta
+  const maxPoints = calculatedMaxPoints > 0 ? calculatedMaxPoints : (analysis.meta?.maxPoints || 0);
+  const achievedPoints = calculatedAchievedPoints > 0 ? calculatedAchievedPoints : (analysis.meta?.achievedPoints || 0);
+
+  // Berechne Prozentsatz
+  const percentage = maxPoints > 0 ? (achievedPoints / maxPoints) * 100 : 0;
+
+  return {
+    meta: {
+      studentName: analysis.meta?.studentName || '',
+      class: analysis.meta?.class || '',
+      subject: analysis.meta?.subject || '',
+      date: analysis.meta?.date || new Date().toISOString().split('T')[0],
+      maxPoints,
+      achievedPoints,
+      grade: analysis.meta?.grade || '', // Wird später basierend auf korrekten Punkten berechnet
+    },
+    tasks,
     strengths: Array.isArray(analysis.strengths) ? analysis.strengths : [],
     nextSteps: Array.isArray(analysis.nextSteps) ? analysis.nextSteps : [],
     teacherConclusion: {

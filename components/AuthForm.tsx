@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 interface EmailAuthFormProps {
   mode: 'login' | 'signup';
@@ -20,43 +21,57 @@ export default function EmailAuthForm({ mode, onClose, onSwitchMode, onGoogleSig
 
   async function handleSignup() {
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    setLoading(false);
-    if (error) {
-      alert(error.message);
-    } else {
-      // Prüfe ob E-Mail-Bestätigung erforderlich ist
-      if (data.user && data.session) {
-        // User ist direkt eingeloggt (E-Mail-Bestätigung deaktiviert)
-        onClose?.();
-        // Weiterleitung zum Dashboard mit Welcome-Parameter
-        router.push('/dashboard?welcome=true');
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      setLoading(false);
+      if (error) {
+        toast.error(error.message);
       } else {
-        // E-Mail-Bestätigung erforderlich
-        alert("Bitte E-Mail bestätigen! Du wirst nach der Bestätigung zum Dashboard weitergeleitet.");
-        onClose?.();
-        // Warte auf E-Mail-Bestätigung (wird via Auth-Callback gehandhabt)
-        // User wird nach Bestätigung automatisch zu /auth/callback weitergeleitet
+        // Prüfe ob E-Mail-Bestätigung erforderlich ist
+        if (data.user && data.session) {
+          // User ist direkt eingeloggt (E-Mail-Bestätigung deaktiviert)
+          toast.success('Registrierung erfolgreich!');
+          onClose?.();
+          // Weiterleitung zum Dashboard mit Welcome-Parameter
+          router.push('/dashboard?welcome=true');
+        } else {
+          // E-Mail-Bestätigung erforderlich
+          toast.info('Bitte E-Mail bestätigen! Du wirst nach der Bestätigung zum Dashboard weitergeleitet.');
+          onClose?.();
+          // Warte auf E-Mail-Bestätigung (wird via Auth-Callback gehandhabt)
+          // User wird nach Bestätigung automatisch zu /auth/callback weitergeleitet
+        }
       }
+    } catch (err) {
+      setLoading(false);
+      toast.error('Ein Fehler ist aufgetreten. Bitte versuche es erneut.');
+      console.error('Signup error:', err);
     }
   }
 
   async function handleLogin() {
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setLoading(false);
-    if (error) {
-      alert(error.message);
-    } else {
-      onClose?.();
-      // Nach erfolgreichem Login zum Dashboard weiterleiten
-      router.push('/dashboard');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      setLoading(false);
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Erfolgreich angemeldet!');
+        onClose?.();
+        // Nach erfolgreichem Login zum Dashboard weiterleiten
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      setLoading(false);
+      toast.error('Ein Fehler ist aufgetreten. Bitte versuche es erneut.');
+      console.error('Login error:', err);
     }
   }
 

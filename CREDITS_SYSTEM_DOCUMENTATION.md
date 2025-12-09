@@ -157,3 +157,6 @@ supabase migration up
 4. **Credit-Verlauf:** Ablaufdatum für Credits (optional)
 
 
+
+
+

@@ -65,6 +65,7 @@ export async function performMasterAnalysis(
         ],
         temperature: 0.3,
         response_format: { type: 'json_object' },
+        max_tokens: 16384, // Erhöhtes Token-Limit für vollständige Analysen
       });
 
       // Token-Usage Tracking
@@ -83,11 +84,28 @@ export async function performMasterAnalysis(
         throw new Error('Keine Antwort von OpenAI erhalten');
       }
 
+      // DEBUG: Zähle Aufgaben im Erwartungshorizont
+      const aufgabenImErwartungshorizont = input.erwartungshorizont.match(/\d+\.\d+/g) || [];
+      const uniqueAufgaben = [...new Set(aufgabenImErwartungshorizont)];
+      console.log('=== OPENAI RESPONSE DEBUG (Master-Analyse) ===');
+      console.log('Anzahl Aufgaben im Erwartungshorizont:', uniqueAufgaben.length);
+      console.log('Aufgaben IDs im Erwartungshorizont:', uniqueAufgaben);
+
       let analysis: any;
       try {
         analysis = JSON.parse(responseText);
       } catch (parseError) {
         throw new Error(`JSON-Parsing fehlgeschlagen: ${parseError}`);
+      }
+      
+      console.log('Anzahl Aufgaben in OpenAI Response:', analysis.tasks?.length || 0);
+      console.log('Aufgaben IDs in Response:', analysis.tasks?.map((t: any) => t.taskId) || []);
+      
+      if (analysis.tasks && analysis.tasks.length < uniqueAufgaben.length) {
+        console.warn(`⚠️ WARNUNG: Response enthält nur ${analysis.tasks.length} Aufgaben, aber Erwartungshorizont hat ${uniqueAufgaben.length} Aufgaben!`);
+        console.warn('Fehlende Aufgaben:', uniqueAufgaben.filter(id => 
+          !analysis.tasks?.some((t: any) => t.taskId.includes(id))
+        ));
       }
 
       // Validierung
@@ -101,17 +119,23 @@ export async function performMasterAnalysis(
         analysis = normalizeAnalysis(analysis);
       }
 
-          // Berechne Note falls fehlt
-          if (!analysis.meta.grade && analysis.meta.maxPoints > 0) {
-            const percentage = (analysis.meta.achievedPoints / analysis.meta.maxPoints) * 100;
+          // WICHTIG: Normalisiere ZUERST, damit Punkte korrekt berechnet werden
+          const normalized = normalizeAnalysis(analysis);
+          
+          // Berechne Note basierend auf KORREKTEN Punkten (aus Einzelaufgaben berechnet)
+          if (!normalized.meta.grade && normalized.meta.maxPoints > 0) {
+            const percentage = (normalized.meta.achievedPoints / normalized.meta.maxPoints) * 100;
             // Fallback: Verwende SEK I (gradeLevel 10) wenn nicht verfügbar
             const gradeLevel = 10; // TODO: Sollte aus meta kommen, falls verfügbar
             const gradeInfo = getGradeInfo({ prozent: percentage, gradeLevel });
-            analysis.meta.grade = gradeInfo.label;
-            if (!analysis.meta.performanceLevel) {
-              analysis.meta.performanceLevel = getPerformanceLevel(percentage);
+            normalized.meta.grade = gradeInfo.label;
+            if (!normalized.meta.performanceLevel) {
+              normalized.meta.performanceLevel = getPerformanceLevel(percentage);
             }
           }
+          
+          // Verwende normalisierte Analyse für weitere Verarbeitung
+          analysis = normalized;
 
       // Setze Meta-Daten falls fehlen
       if (!analysis.meta.studentName && input.studentName) {
@@ -127,27 +151,26 @@ export async function performMasterAnalysis(
         analysis.meta.date = new Date().toISOString().split('T')[0];
       }
 
-      const normalized = normalizeAnalysis(analysis);
-
+      // normalized wurde bereits oben berechnet
       // Prüfe und korrigiere Verteilung von Stärken und Nächsten Schritten
-      const percentage = calculatePercentage(normalized.meta.achievedPoints, normalized.meta.maxPoints);
-      const distributionCheck = validateDistribution(normalized.strengths, normalized.nextSteps, percentage);
+      const percentage = calculatePercentage(analysis.meta.achievedPoints, analysis.meta.maxPoints);
+      const distributionCheck = validateDistribution(analysis.strengths, analysis.nextSteps, percentage);
 
       if (distributionCheck.needsCorrection) {
         console.warn('Verteilung von Stärken/Nächsten Schritten entspricht nicht der Leistung:', {
           percentage,
-          currentStrengths: normalized.strengths.length,
-          currentNextSteps: normalized.nextSteps.length,
+          currentStrengths: analysis.strengths.length,
+          currentNextSteps: analysis.nextSteps.length,
           expectedStrengths: `${distributionCheck.config.strengthsCount.min}-${distributionCheck.config.strengthsCount.max}`,
           expectedNextSteps: `${distributionCheck.config.nextStepsCount.min}-${distributionCheck.config.nextStepsCount.max}`,
         });
 
         // Versuche aus verfügbaren Daten zu ergänzen
-        const enriched = enrichStrengthsAndNextSteps(normalized, distributionCheck.config);
+        const enriched = enrichStrengthsAndNextSteps(analysis, distributionCheck.config);
         return enriched;
       }
 
-      return normalized;
+      return analysis;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       console.error(`Master-Analyse Fehler (Versuch ${attempt + 1}):`, {

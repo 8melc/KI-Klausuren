@@ -51,6 +51,9 @@ Erzeuge ein vollständiges Analyseobjekt im folgenden JSON-Schema:
 
 REGELN:
 - Die JSON-Struktur darf NICHT verändert werden.
+- **KRITISCH: Analysiere JEDE EINZELNE Aufgabe aus dem Erwartungshorizont. KEINE Aufgabe darf fehlen!**
+- Wenn der Erwartungshorizont Aufgaben 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4 enthält, MUSS deine Analyse auch ALLE diese Aufgaben enthalten.
+- Zähle die Aufgaben im Erwartungshorizont und stelle sicher, dass deine Response GENAU SO VIELE Aufgaben enthält.
 - Jede Aufgabe MUSS korrekt analysiert werden.
 - ALLE Inhalte müssen klar, korrekt und fachlich belastbar sein.
 - NUR Inhalte verwenden, die sich aus Musterlösung oder Schülerantwort ableiten lassen.
@@ -106,6 +109,29 @@ ADAPTIVER DETAILGRAD (pro Aufgabe):
 - 40-70% erreicht: 2-4 Fehlerpunkte, 2-4 Verbesserungstipps, mittlere Tiefe
 - >70% erreicht: 1-2 Fehlerpunkte, 1-2 Verbesserungstipps, Fokus auf Feinschliff
 
+⚠️ KRITISCH WICHTIG FÜR STRUKTURFORMEL-AUFGABEN:
+
+Diese Klausur kann HANDGEZEICHNETE chemische Strukturformeln enthalten.
+
+BEWERTUNGSPRINZIP für Strukturformeln:
+- Ist die KETTENLÄNGE korrekt? (Anzahl C-Atome)
+- Ist die OH-Gruppe am richtigen Ort?
+- Ist die GRUNDSTRUKTUR erkennbar?
+- Gib TEILPUNKTE auch bei unleserlichen aber erkennbaren Strukturen
+- NUR 0 Punkte wenn GAR KEINE Struktur vorhanden oder komplett falsch
+
+BEISPIEL:
+Aufgabe: "Zeichnen Sie die Strukturformel von Ethanol"
+Erwartung: CH3-CH2-OH
+- Schüler zeichnet: Unleserliche Linien mit "OH" → 2/4 Punkte (Struktur erkennbar)
+- Schüler zeichnet: Klare Struktur mit 2 C und OH → 4/4 Punkte
+- Schüler zeichnet: GAR NICHTS → 0/4 Punkte
+
+Für JEDE Aufgabe die eine Zeichnung verlangt:
+- Beschreibe detailliert was du in der Schülerantwort SIEHST
+- Vergleiche mit Erwartung
+- Bewerte großzügig bei unleserlichen aber erkennbaren Strukturen
+
 ERWARTUNGSHORIZONT:
 ${input.erwartungshorizont}
 
@@ -114,6 +140,12 @@ ${input.klausurText}
 
 ${input.subject ? `\nFACH: ${input.subject}\nVerwende fachspezifische Konventionen, Operatoren und Bewertungskriterien.\n` : ''}
 
+**WICHTIG - VOLLSTÄNDIGKEIT:**
+1. Identifiziere ALLE Aufgaben im Erwartungshorizont (z.B. 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4)
+2. Analysiere JEDE dieser Aufgaben - auch wenn der Schüler keine Antwort gegeben hat (dann: 0 Punkte, entsprechende Analyse)
+3. Stelle sicher, dass deine Response GENAU SO VIELE Aufgaben enthält wie im Erwartungshorizont definiert
+4. Wenn eine Aufgabe im Erwartungshorizont fehlt, ist deine Analyse UNVOLLSTÄNDIG
+
 GIB ZURÜCK: Nur das JSON-Objekt, keine Erläuterungen.`;
 }
 
@@ -121,7 +153,9 @@ export const MASTER_ANALYSIS_SYSTEM_PROMPT = `Du bist ein präziser Fachlehrer. 
 
 VERBINDLICHE REGELN:
 1. Analysiere fachlich korrekt basierend auf dem Erwartungshorizont
-2. Verwende die universelle JSON-Struktur exakt wie vorgegeben
-3. Alle Textfelder müssen vollständige Sätze enthalten
-4. Passe den Detailgrad an die erreichte Punktzahl an
-5. Erfinde keine Inhalte - nur was aus Erwartungshorizont und Schülerantwort ableitbar ist`;
+2. **KRITISCH: Analysiere JEDE EINZELNE Aufgabe aus dem Erwartungshorizont. KEINE Aufgabe darf fehlen!**
+3. Zähle die Aufgaben im Erwartungshorizont und stelle sicher, dass deine Response GENAU SO VIELE Aufgaben enthält
+4. Verwende die universelle JSON-Struktur exakt wie vorgegeben
+5. Alle Textfelder müssen vollständige Sätze enthalten
+6. Passe den Detailgrad an die erreichte Punktzahl an
+7. Erfinde keine Inhalte - nur was aus Erwartungshorizont und Schülerantwort ableitbar ist`;

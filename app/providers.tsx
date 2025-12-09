@@ -2,6 +2,7 @@
 
 import { createContext, useContext, ReactNode } from 'react';
 import { AuthProvider } from '@/components/AuthProvider';
+import { Toaster } from 'sonner';
 
 type GradingContextType = Record<string, unknown>;
 
@@ -29,6 +30,7 @@ export function RootProvider({ children }: { children: ReactNode }) {
     <AuthProvider>
       <GradingProvider>
         {children}
+        <Toaster position="top-center" richColors />
       </GradingProvider>
     </AuthProvider>
   );

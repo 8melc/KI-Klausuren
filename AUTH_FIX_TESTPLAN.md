@@ -301,3 +301,6 @@ supabase.auth.onAuthStateChange((event, session) => {
 - OAuth-Flows nutzen die Client-Component
 - Email-Login nutzt direkt `signInWithPassword` (kein Callback nötig)
 
+
+
+

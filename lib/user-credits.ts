@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createBrowserClient } from '@/lib/supabase/client';
+import { executeWithRetry, isJWTExpiredError } from '@/lib/supabase/error-handler';
 
 /**
  * Server-side: Prüft ob User Credits hat
@@ -7,13 +8,18 @@ import { createClient as createBrowserClient } from '@/lib/supabase/client';
 export async function getUserCredits(userId: string): Promise<number> {
   const supabase = await createClient();
   
-  const { data, error } = await supabase
-    .from('users')
-    .select('credits')
-    .eq('id', userId)
-    .single();
+  const { data, error } = await executeWithRetry(() =>
+    supabase
+      .from('users')
+      .select('credits')
+      .eq('id', userId)
+      .single()
+  );
   
   if (error || !data) {
+    if (isJWTExpiredError(error)) {
+      console.warn('Session expired while fetching credits');
+    }
     return 0;
   }
   
@@ -33,13 +39,19 @@ export async function consumeCredit(userId: string): Promise<boolean> {
   }
   
   // Verbrauche 1 Credit
-  const { error } = await supabase
-    .from('users')
-    .update({ 
-      credits: credits - 1,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', userId);
+  const { error } = await executeWithRetry(() =>
+    supabase
+      .from('users')
+      .update({ 
+        credits: credits - 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+  );
+  
+  if (isJWTExpiredError(error)) {
+    console.warn('Session expired while consuming credit');
+  }
   
   return !error;
 }
@@ -50,10 +62,16 @@ export async function consumeCredit(userId: string): Promise<boolean> {
 export async function addCredits(userId: string, amount: number): Promise<boolean> {
   const supabase = await createClient();
   
-  const { error } = await supabase.rpc('add_credits', {
-    user_id: userId,
-    amount: amount
-  });
+  const { error } = await executeWithRetry(() =>
+    supabase.rpc('add_credits', {
+      user_id: userId,
+      amount: amount
+    })
+  );
+  
+  if (isJWTExpiredError(error)) {
+    console.warn('Session expired while adding credits');
+  }
   
   return !error;
 }
@@ -75,11 +93,39 @@ export async function getUserCreditsClient(): Promise<number> {
     .eq('id', user.id)
     .single();
   
-  if (error || !data) {
+  if (error) {
+    // Handle JWT expired error
+    if (error.code === 'PGRST301' || error.message?.includes('JWT')) {
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        // Redirect to login if refresh fails
+        if (typeof window !== 'undefined') {
+          window.location.href = '/';
+        }
+        return 0;
+      }
+      // Retry the query after refresh
+      const { data: retryData, error: retryError } = await supabase
+        .from('users')
+        .select('credits')
+        .eq('id', user.id)
+        .single();
+      if (retryError || !retryData) {
+        return 0;
+      }
+      return retryData.credits || 0;
+    }
+    return 0;
+  }
+  
+  if (!data) {
     return 0;
   }
   
   return data.credits || 0;
 }
+
+
+
 
 

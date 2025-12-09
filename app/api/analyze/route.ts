@@ -91,10 +91,27 @@ export async function POST(request: NextRequest) {
         console.log('Verwende alte Analyse-Funktion...');
         analysis = await analyzeKlausur(klausurText, erwartungshorizont);
       }
+      // Type-safe Logging für beide Analyse-Typen
+      let aufgabenAnzahl = 0;
+      let erreichtePunkte = 0;
+      let maxPunkte = 0;
+
+      if ('aufgaben' in analysis) {
+        // KlausurAnalyse Typ
+        aufgabenAnzahl = analysis.aufgaben?.length || 0;
+        erreichtePunkte = analysis.erreichtePunkte || 0;
+        maxPunkte = analysis.gesamtpunkte || 0;
+      } else if ('tasks' in analysis) {
+        // UniversalAnalysis Typ
+        aufgabenAnzahl = analysis.tasks?.length || 0;
+        erreichtePunkte = analysis.meta?.achievedPoints || 0;
+        maxPunkte = analysis.meta?.maxPoints || 0;
+      }
+
       console.log('Analyse erfolgreich abgeschlossen:', {
-        aufgabenAnzahl: analysis.aufgaben?.length || analysis.tasks?.length || 0,
-        erreichtePunkte: analysis.erreichtePunkte || analysis.meta?.achievedPoints || 0,
-        maxPunkte: analysis.gesamtpunkte || analysis.meta?.maxPoints || 0,
+        aufgabenAnzahl,
+        erreichtePunkte,
+        maxPunkte,
       });
     } catch (analysisError) {
       console.error('Fehler während der Analyse:', analysisError);

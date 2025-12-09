@@ -19,11 +19,41 @@ export default function AuthButton() {
 
   useEffect(() => {
     const getUser = async () => {
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
-      setUser(currentUser);
-      setLoading(false);
+      try {
+        const {
+          data: { user: currentUser },
+          error,
+        } = await supabase.auth.getUser();
+        
+        if (error) {
+          // Handle JWT expired error
+          if (error.message?.includes('JWT') || error.message?.includes('expired')) {
+            const { error: refreshError } = await supabase.auth.refreshSession();
+            if (refreshError) {
+              // Session expired, user needs to login again
+              setUser(null);
+              setLoading(false);
+              return;
+            }
+            // Retry after refresh
+            const { data: { user: retryUser } } = await supabase.auth.getUser();
+            setUser(retryUser);
+            setLoading(false);
+            return;
+          }
+          // Other error
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        
+        setUser(currentUser);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error getting user:', err);
+        setUser(null);
+        setLoading(false);
+      }
     };
 
     getUser();

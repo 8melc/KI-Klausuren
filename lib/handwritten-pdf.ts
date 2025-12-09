@@ -19,7 +19,36 @@ export async function extractHandwrittenPdfText(uint8: Uint8Array): Promise<stri
           mimeType: 'application/pdf'
         }
       },
-      'Transkribiere den gesamten handgeschriebenen Text aus diesem PDF. Behalte die Struktur bei (Aufgabennummern, Absätze). Gib nur den reinen Text zurück.'
+      `Transkribiere den gesamten handgeschriebenen Text aus diesem PDF. Behalte die Struktur bei (Aufgabennummern, Absätze).
+
+⚠️ WICHTIG FÜR CHEMISCHE STRUKTURFORMELN:
+
+Diese Klausur kann HANDGEZEICHNETE chemische Strukturformeln enthalten.
+
+Strukturformeln sind als LINIEN, STRICHE und BUCHSTABEN (C, H, O, OH) gezeichnet.
+
+Die Zeichnungen sind auf KARIERTEM PAPIER, oft mit BLEISTIFT/Kugelschreiber.
+
+Strukturformeln können UNORDENTLICH oder UNLESERLICH sein - beschreibe trotzdem was du siehst!
+
+OH-Gruppen sind oft EINGEKREIST oder markiert.
+
+Achte auf:
+- C-C Bindungen (Linien zwischen Kohlenstoffatomen)
+- OH-Gruppen (oft eingekreist oder markiert)
+- Kettenlänge (Anzahl C-Atome)
+- Buchstaben wie C, H, O, OH
+- Eingekreiste oder markierte Bereiche
+
+Wenn du IRGENDEINE Struktur erkennst, beschreibe sie detailliert:
+- "Strukturformel mit X Kohlenstoffatomen"
+- "OH-Gruppe am Ende/am Anfang"
+- "Eingekreiste OH-Gruppe"
+- "Linien zwischen Atomen erkennbar"
+
+Beschreibe auch unleserliche Strukturen, wenn du die Grundform erkennst.
+
+Gib nur den reinen Text zurück, aber beschreibe ALLE Zeichnungen und Strukturen die du siehst.`
     ]);
 
     const text = result.response.text();

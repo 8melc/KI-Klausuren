@@ -27,17 +27,47 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         return
       }
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      try {
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser()
 
-      if (!user) {
+        if (error) {
+          // Handle JWT expired error
+          if (error.message?.includes('JWT') || error.message?.includes('expired')) {
+            const { error: refreshError } = await supabase.auth.refreshSession()
+            if (refreshError) {
+              // Redirect to login if refresh fails
+              router.push('/')
+              return
+            }
+            // Retry after refresh
+            const { data: { user: retryUser } } = await supabase.auth.getUser()
+            if (!retryUser) {
+              router.push('/')
+              return
+            }
+            setIsAuthenticated(true)
+            setLoading(false)
+            return
+          }
+          // Other auth error
+          router.push('/')
+          return
+        }
+
+        if (!user) {
+          router.push('/')
+          return
+        }
+
+        setIsAuthenticated(true)
+        setLoading(false)
+      } catch (err) {
+        console.error('Auth check error:', err)
         router.push('/')
-        return
       }
-
-      setIsAuthenticated(true)
-      setLoading(false)
     }
 
     checkAuth()

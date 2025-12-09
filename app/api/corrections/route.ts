@@ -31,34 +31,8 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = createClientFromRequest(request);
     
-    // 1. Versuche Session zu holen
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-
-    if (sessionError) {
-      console.error('Session error:', sessionError);
-    }
-
-    // 2. Wenn keine Session, versuche zu refreshen
-    let validSession = session;
-    if (!validSession) {
-      console.log('Keine Session gefunden, versuche zu refreshen...');
-      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-      
-      if (refreshError || !refreshData.session) {
-        console.error('Session refresh fehlgeschlagen:', refreshError);
-        return NextResponse.json(
-          { error: 'Deine Sitzung ist abgelaufen. Bitte melde dich neu an.' },
-          { status: 401 }
-        );
-      }
-      
-      validSession = refreshData.session;
-    }
-
-    // 3. Hole User mit der gültigen Session
+    // Hole User - getUser() refresht automatisch die Session, wenn nötig
+    // Kein manueller refreshSession() Aufruf, da das zu "Invalid Refresh Token" Fehlern führen kann
     const {
       data: { user },
       error: authError,
