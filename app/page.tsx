@@ -2,47 +2,39 @@ import Link from 'next/link';
 
 const features = [
   {
-    title: 'Liest jede Handschrift',
-    description: 'Egal ob Schönschrift oder Gekritzel: Die KI erkennt den Text zuverlässig, sogar Randnotizen.',
+    title: 'Entziffert jede Handschrift',
+    description: 'Egal ob Schönschrift oder Gekritzel: KorrekturPilot erkennt den Text zuverlässig, sogar bei Tabellen oder Skizzen. Unsichere Stellen werden für dich markiert.',
   },
   {
-    title: 'Bewertung nach Erwartungshorizont',
-    description: 'Upload als Bewertungsbasis sorgt für faire, konsistente Noten pro Aufgabe.',
+    title: 'Dein Erwartungshorizont als Maßstab',
+    description: 'Du lädst deine Musterlösung einfach als PDF hoch. Das System nutzt exakt deine Kriterien für eine faire, konsistente Bepunktung.',
   },
   {
-    title: 'Automatische Teilpunkte',
-    description: 'Plausibilitätschecks, Punktespiegel und klare Begründungen pro Aufgabe.',
+    title: 'Korrektur im Stapel',
+    description: 'Kein Einzel-Upload nötig. Scanne den ganzen Stapel am Schulkopierer oder per App, lade das PDF hoch und lass bis zu 30 Hefte gleichzeitig verarbeiten.',
   },
   {
-    title: 'Korrigiertes Word-Dokument',
-    description: 'Export als Word-Datei mit Kommentaren am Rand, Punktespiegel und Klassenhinweisen.',
-  },
-  {
-    title: 'Ganzen Klassensatz hochladen',
-    description: 'Laden Sie den ganzen Stapel hoch. Während Sie einen Kaffee holen, ist die Erstkorrektur fertig (ca. 4–6 Min).',
-  },
-  {
-    title: 'Batch-Verarbeitung',
-    description: 'Laden Sie bis zu 10 Hefte gleichzeitig hoch. Die KI verarbeitet den gesamten Stapel parallel in 4–6 Minuten.',
+    title: 'Editierbares Word-Dokument',
+    description: 'Du erhältst kein starres Ergebnis, sondern eine Word-Datei mit Kommentaren, Punktespiegel und Feedback-Texten, die du frei anpassen kannst.',
   },
 ];
 
 const steps = [
   {
     title: 'Erwartungshorizont hochladen',
-    description: 'Ein Foto oder PDF Ihrer Musterlösung reicht. Das ist die Referenz für die KI.',
+    description: 'Lade deine Musterlösung oder den Erwartungshorizont als PDF hoch. Das ist die Referenz, an der sich die Bewertung orientiert.',
   },
   {
     title: 'Klausuren scannen & hochladen',
-    description: 'Einfach als PDF. Wichtig: Namen vorher schwärzen (Datenschutz).',
+    description: 'Scanne die Schülerarbeiten (z.B. per Schulkopierer, Scan-App wie Adobe Scan oder Notizen-App) und lade sie als PDF hoch.',
   },
   {
-    title: 'KI korrigiert & kommentiert',
-    description: 'Abgleich mit Ihrer Lösung, Punktevergabe und Formulierung von Feedback-Vorschlägen.',
+    title: 'Analyse & Bepunktung',
+    description: 'KorrekturPilot gleicht die Antworten mit deiner Lösung ab, vergibt Punkte und formuliert Feedback-Vorschläge.',
   },
   {
     title: 'Word-Export & Kontrolle',
-    description: 'Sie erhalten ein Word-Dokument und behalten die volle Kontrolle über Noten und Feedback.',
+    description: 'Du erhältst ein Word-Dokument. Jetzt hast du das letzte Wort: Prüfe die Bewertung, passe Texte an und speichere das Ergebnis.',
   },
 ];
 
@@ -53,7 +45,7 @@ const faqs = [
   },
   {
     q: 'Wie läuft die kostenlose Testklausur?',
-    a: 'Registrieren Sie sich kostenlos und erhalten Sie Credits für eine Klausur. Dann Erwartungshorizont + eine Klausur hochladen, Ergebnis als Word-Dokument erhalten. Danach das Paket freischalten.',
+    a: 'Registriere dich kostenlos und erhalte Credits für eine Klausur. Dann Erwartungshorizont + eine Klausur hochladen, Ergebnis als Word-Dokument erhalten. Danach das Paket freischalten.',
   },
   {
     q: 'Wie steht es um Datenschutz?',
@@ -61,11 +53,11 @@ const faqs = [
   },
   {
     q: 'Wie lange dauert eine Korrektur?',
-    a: '4–6 Minuten für bis zu 10 Klausuren, abhängig von Scan-Qualität und Umfang.',
+    a: 'Ein ganzer Klassensatz wird deutlich schneller bearbeitet als von Hand – oft in unter 60 Minuten statt eines halben Tages.',
   },
   {
     q: 'Was kostet KorrekturPilot nach dem Test?',
-    a: 'Pionier-Angebot: 25 Klausuren für 7,90 € (statt 29 €).',
+    a: 'Beta-Angebot: 25 Klausuren für 7,90 € (statt 29 €).',
   },
   {
     q: 'Brauche ich technische Vorkenntnisse?',
@@ -76,60 +68,57 @@ const faqs = [
 export default function Home() {
   return (
     <>
-      <section className="module-section" style={{ padding: 'var(--spacing-sm) 0', background: 'var(--color-gray-50)' }}>
-        <div className="container" style={{ textAlign: 'center' }}>
-          <p className="hero-tag" style={{ margin: 0 }}>Beta-Phase: Werden Sie eine der ersten 20 Lehrkräfte und profitieren Sie vom Early-Access-Preis.</p>
-        </div>
-      </section>
-
       <section className="hero" id="hero">
         <div className="container">
           <div className="hero-content">
-            <p className="hero-tag">Jetzt registrieren und erste Klausur kostenlos · Beta-Preis: 25 Klausuren für 7,90 € (statt 29 €)</p>
-            <h1 className="hero-title">Korrigieren Sie eine Klasse in 30 Minuten statt 5 Stunden.</h1>
-            <p className="hero-subtitle">
-              KI liest jede Handschrift, gleicht sie mit Ihrem Erwartungshorizont ab und erstellt ein Word-Feedback mit Punktespiegel. Jetzt registrieren und erste Klausur kostenlos testen – Credits werden bei der kostenlosen Registrierung zur Verfügung gestellt.
+            <div className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium text-blue-100 ring-1 ring-inset ring-blue-400/30 bg-blue-400/10 mb-6">
+              Exklusives Beta-Angebot: Sichere dir den Vorzugspreis
+            </div>
+            <h1 className="hero-title font-extrabold">Mehr Zeit für Unterricht, weniger Zeit am Schreibtisch.</h1>
+            <p className="hero-subtitle text-blue-100">
+              KorrekturPilot unterstützt dich bei der Fleißarbeit: Deine handschriftlichen Klausuren werden analysiert, mit deinem Erwartungshorizont abgeglichen und in fertiges Schülerfeedback verwandelt. Du behältst die volle Kontrolle.
             </p>
             <div className="hero-cta-group">
-              <Link href="/expectation" className="primary-button">
+              <Link href="/auth" className="primary-button">
                 <span>Erste Klausur kostenlos testen</span>
               </Link>
-              <Link href="#pricing" className="secondary-button">
-                <span>Zum Pionier-Angebot</span>
+              <Link href="#pricing" className="secondary-button bg-transparent border-2 border-white text-white hover:bg-white/10">
+                <span>Zum Beta-Angebot</span>
               </Link>
             </div>
+            <p className="text-blue-200 opacity-80" style={{ marginTop: 'var(--spacing-md)', fontSize: '0.95rem', textAlign: 'center' }}>
+              Einfach registrieren, PDF hochladen und Ergebnis prüfen. Keine Installation nötig.
+            </p>
           </div>
         </div>
       </section>
 
       <section className="module-section" id="problem">
         <div className="container">
-          <h2 className="section-title">Korrigieren frisst Abende – und bleibt oft subjektiv.</h2>
+          <h2 className="section-title">Korrekturen sollten keine Nachtschicht sein.</h2>
           <p className="section-description">
-            Handschriftliche Arbeiten entziffern und fair bewerten kostet Sie pro Heft 15–20 Minuten. KorrekturPilot reduziert das auf unter 2 Minuten pro Heft.
+            Einen Klassensatz fair, leserlich und ausführlich zu bewerten, kostet dich wertvolle Lebenszeit. Wir ändern den Prozess, nicht deinen Anspruch.
           </p>
           <div className="module-grid">
-            <div className="module-card">
-              <h3>Problem</h3>
-              <ul style={{ lineHeight: 1.6, color: 'var(--color-gray-700)', paddingLeft: 'var(--spacing-lg)' }}>
-                <li>Zeitverlust pro Klasse (25–30 Arbeiten)</li>
-                <li>Inkonstante Bewertung und subjektive Abzüge</li>
-                <li>Fehleranfällige Nacharbeit und Korrekturschleifen</li>
+            <div className="module-card bg-slate-50 text-slate-600 p-10">
+              <h3 className="text-slate-700">Der manuelle Weg</h3>
+              <ul className="text-lg leading-relaxed" style={{ paddingLeft: 'var(--spacing-lg)' }}>
+                <li>Stundenlanges Entziffern von Handschriften</li>
+                <li>Ermüdung führt oft zu subjektiven Bewertungen</li>
+                <li>Aufwendiges Schreiben von Feedback-Texten</li>
               </ul>
             </div>
-            <div className="module-card">
-              <h3>Lösung</h3>
-              <ul style={{ lineHeight: 1.6, color: 'var(--color-gray-700)', paddingLeft: 'var(--spacing-lg)' }}>
-                <li>Liest auch unleserliche Handschriften ("Sauklaue") und gleicht sie mit dem Erwartungshorizont ab</li>
-                <li>Automatische Bepunktung &amp; individuelles Feedback</li>
-                <li>Ganzen Klassensatz (bis 10 Hefte) auf einen Klick korrigieren</li>
+            <div className="module-card bg-white shadow-xl border border-blue-200 p-10">
+              <h3>Der Weg mit KorrekturPilot</h3>
+              <ul className="text-lg leading-relaxed" style={{ color: 'var(--color-gray-700)', paddingLeft: 'var(--spacing-lg)' }}>
+                <li>Liest auch unleserliche Handschriften ("Sauklaue") zuverlässig</li>
+                <li>Objektiver Abgleich mit deinem Erwartungshorizont</li>
+                <li>Erstellt Korrekturvorschläge und Feedback in Minuten</li>
+                <li>Korrigiert einen ganzen Klassensatz (bis zu 30 Hefte) parallel</li>
               </ul>
               <div style={{ marginTop: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
-                <Link href="/upload" className="primary-button">
-                  Kostenlos starten
-                </Link>
-                <Link href="#example" className="secondary-button">
-                  Kostenloses Beispiel ansehen
+                <Link href="/auth" className="primary-button">
+                  Erste Klausur kostenlos testen
                 </Link>
               </div>
             </div>
@@ -139,15 +128,15 @@ export default function Home() {
 
       <section className="module-section" id="features">
         <div className="container">
-          <h2 className="section-title">Entwickelt für Lehrkräfte – nicht für KI-Bastler.</h2>
+          <h2 className="section-title">Praxistauglich und einfach: Dein digitaler Korrektur-Assistent.</h2>
           <p className="section-description">
-            Alles, was Sie für schnelle, faire Korrekturen brauchen – ohne Setup-Aufwand.
+            Alles, was du für eine schnelle und faire Bewertung brauchst – ohne technische Hürden.
           </p>
           <div className="module-grid">
             {features.map((feature) => (
-              <div key={feature.title} className="module-card">
-                <h3 className="module-card-title">{feature.title}</h3>
-                <p className="module-card-description">{feature.description}</p>
+              <div key={feature.title} className="module-card h-full p-8">
+                <h3 className="module-card-title font-bold">{feature.title}</h3>
+                <p className="module-card-description text-gray-600 text-lg leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -156,25 +145,26 @@ export default function Home() {
 
       <section className="module-section" id="value">
         <div className="container">
-          <h2 className="section-title">Rechnen Sie Ihren Samstag durch.</h2>
-          <p className="section-description">Eine Klasse korrigieren dauert ca. 5 Stunden. Mit KorrekturPilot ca. 30 Minuten.</p>
+          <h2 className="section-title">Wie viel Lebenszeit gewinnst du zurück?</h2>
+          <p className="section-description">
+            Mit KorrekturPilot erledigst du die Vorarbeit für einen ganzen Klassensatz meist in unter einer Stunde – statt eines halben Tages.
+          </p>
           <div className="module-grid">
-            <div className="module-card">
-              <h3>4,5 Stunden Zeitersparnis pro Klassensatz</h3>
-              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
-                Mit 7,90 € für 25 Klausuren zahlen Sie 0,31 € pro Heft. Manuelle Korrektur würde Sie ca. 5 Stunden kosten – KorrekturPilot erledigt es in 30 Minuten.
-              </p>
-            </div>
-            <div className="module-card">
-              <h3>Konkreter Vergleich</h3>
-              <ul style={{ lineHeight: 1.6, color: 'var(--color-gray-700)', paddingLeft: 'var(--spacing-lg)' }}>
-                <li>Manuell: ~5 Stunden pro Klasse</li>
-                <li>Mit KorrekturPilot: ~30 Minuten</li>
-                <li>Ersparnis: ~4,5 Stunden pro Durchgang</li>
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Manuell</h3>
+              <ul className="text-gray-600 text-lg leading-relaxed" style={{ paddingLeft: 'var(--spacing-lg)' }}>
+                <li>Ca. 5 bis 10 Stunden pro Klassensatz</li>
+                <li>Wiederkehrendes Blättern und Vergleichen</li>
+                <li>Risiko von Flüchtigkeitsfehlern durch Ermüdung</li>
               </ul>
-              <p style={{ marginTop: 'var(--spacing-md)', color: 'var(--color-gray-700)' }}>
-                Rechnen Sie hoch: Jede Klasse spart Ihnen einen halben Arbeitstag.
-              </p>
+            </div>
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Mit KorrekturPilot</h3>
+              <ul className="text-gray-600 text-lg leading-relaxed" style={{ paddingLeft: 'var(--spacing-lg)' }}>
+                <li>Ein ganzer Klassensatz in ca. 60 Minuten verarbeitet</li>
+                <li>Automatische Auswertung nach deinen Vorgaben</li>
+                <li>Du prüfst nur noch die Vorschläge und gibst den Feinschliff</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -182,8 +172,7 @@ export default function Home() {
 
       <section className="how-it-works" id="steps">
         <div className="container">
-          <h2 className="section-title">In 4 Schritten zur fertigen Word-Korrektur.</h2>
-          <p className="section-description">Upload → Analyse → Bepunktung → Export.</p>
+          <h2 className="section-title">In 4 Schritten zur fertigen Korrektur.</h2>
           <div className="process-grid">
             {steps.map((step, index) => (
               <div key={step.title} className="process-card">
@@ -202,32 +191,66 @@ export default function Home() {
 
       <section className="module-section" id="example">
         <div className="container">
-          <h2 className="section-title">Wie sieht das Ergebnis aus?</h2>
+          <h2 className="section-title">Volle Transparenz über jedes Ergebnis.</h2>
           <p className="section-description">
-            Sauberes Word-Dokument mit Punktespiegel, kommentierten Aufgaben und kurzer Rückmeldung an die Klasse.
+            Nach dem Upload erhältst du eine übersichtliche Auswertung, bevor du das Word-Dokument exportierst.
           </p>
-            <div className="module-grid">
-            <div className="module-card">
-              <h3>Word-Feedback</h3>
-              <p>Feedback.docx · 4 Seiten · Exportiert am 10. März</p>
-              <ul style={{ marginTop: 'var(--spacing-md)', lineHeight: 1.6, color: 'var(--color-gray-700)', paddingLeft: 'var(--spacing-lg)' }}>
-                <li>Aufgabe 1 · 9/10 – Teilpunkte vergeben, Quellenangabe fehlt.</li>
-                <li>Aufgabe 2 · 7/8 – Struktur-Hinweise ergänzt, Erwartung erfüllt.</li>
-                <li>Punktespiegel · 23/26 · Note 1- · Kommentare pro Teilaufgabe.</li>
-                <li>Klassenfeedback · Stärken & nächste Übungsschritte.</li>
-              </ul>
+          {/* TODO: Mockup-Bild der Ergebnisansicht hier einfügen - Platzhalter für Screenshot/Mockup der Ergebnisansicht */}
+          <div style={{ marginBottom: 'var(--spacing-xl)', textAlign: 'center' }}>
+            <div style={{ 
+              width: '100%', 
+              maxWidth: '800px', 
+              margin: '0 auto',
+              height: '400px',
+              backgroundColor: 'var(--color-gray-100)',
+              border: '2px dashed var(--color-gray-300)',
+              borderRadius: 'var(--radius-lg)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--color-gray-500)'
+            }}>
+              {/* Platzhalter für Ergebnisansicht-Mockup - Bild hier einfügen: <Image src="/images/ergebnis-mockup.png" alt="Beispiel Ergebnisansicht" width={800} height={400} /> */}
+              <p>Platzhalter für Ergebnisansicht-Mockup</p>
             </div>
-            <div className="module-card">
-              <h3>Warum ein Word-Dokument?</h3>
-              <ul style={{ lineHeight: 1.6, color: 'var(--color-gray-700)', paddingLeft: 'var(--spacing-lg)' }}>
-                <li>Direkt editierbar und personalisierbar</li>
-                <li>Kompatibel mit Schulservern und Mailversand</li>
-                <li>Saubere Formatierung für Ausdruck und Weitergabe</li>
-                <li>Erwartungshorizont kann als PDF/Foto hochgeladen oder direkt eingetippt werden</li>
-              </ul>
-              <p style={{ marginTop: 'var(--spacing-lg)', color: 'var(--color-gray-700)' }}>
-                Zeitbedarf: 4–6 Minuten für bis zu 10 Klausuren gleichzeitig.
+          </div>
+          <div className="module-grid">
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Der schnelle Überblick</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Du siehst Fach, Klasse, Schülernamen und erreichte Punkte auf einen Blick. Ideal für eine erste Einschätzung des Leistungsniveaus.
               </p>
+            </div>
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Details auf Aufgabenebene</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Klicke in jede Aufgabe: Das System zeigt dir, was der Schüler geschrieben hat ("IST") und vergleicht es mit deiner Lösung ("SOLL").
+              </p>
+            </div>
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Export für die Rückgabe</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Alle Ergebnisse landen in einem sauber formatierten Word-Dokument. Inklusive Punktetabelle und individuell formulierten Hinweisen für die Schüler.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="module-section" id="student-feedback">
+        <div className="container">
+          <h2 className="section-title">Individuelles Feedback, ohne Schreibkrampf.</h2>
+          <p className="section-description">
+            KorrekturPilot erstellt für jede Arbeit einen Vorschlag mit Stärken, Schwächen und konkreten Tipps.
+          </p>
+          <div className="module-grid">
+            <div className="module-card h-full p-8">
+              <ul className="text-gray-600 text-lg leading-relaxed" style={{ paddingLeft: 'var(--spacing-lg)' }}>
+                <li>Du musst keine Standardfloskeln mehr tippen.</li>
+                <li>Du gleichst nur noch ab, ob der Tonfall passt.</li>
+                <li>Das Feedback ist konstruktiv und motivierend formuliert.</li>
+                <li>Du kannst jeden Satz im Word-Dokument ändern oder ergänzen.</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -236,44 +259,47 @@ export default function Home() {
       <section className="pricing-section" id="pricing">
         <div className="container">
           <div className="pricing-header">
-            <h2 className="section-title">Überzeugen Sie sich selbst – ohne Risiko.</h2>
-            <p className="section-description">Registrieren Sie sich kostenlos und erhalten Sie Credits für die erste Klausur. Wenn das Ergebnis Sie überzeugt, sichern Sie sich den Vorzugspreis für den gesamten Klassensatz.</p>
+            <h2 className="section-title">Überzeuge dich selbst – völlig risikofrei.</h2>
+            <p className="section-description">Registriere dich kostenlos und teste die erste Klausur. Wenn das Ergebnis dich überzeugt, sicherst du dir den Vorzugspreis.</p>
           </div>
+
           <div className="pricing-grid">
-            <div className="pricing-card">
+            <div className="pricing-card shadow-sm p-10">
               <p className="pricing-badge">Zum Kennenlernen</p>
               <div className="pricing-card-header">
                 <h3>1 Klausur inkl. Word-Export</h3>
                 <p className="pricing-card-price">0 €</p>
               </div>
-              <p className="pricing-card-description">Registrieren Sie sich kostenlos und erhalten Sie Credits für eine Testklausur. Testen Sie unverbindlich, wie präzise die KI Ihre Handschriften liest und bewertet. Keine Zahlungsdaten nötig.</p>
-              <ul className="pricing-card-features">
+              <p className="pricing-card-description text-lg leading-relaxed">Registriere dich kostenlos und erhalte Credits für eine Testklausur. Teste unverbindlich, wie präzise deine Handschriften erkannt werden.</p>
+              <ul className="pricing-card-features text-lg leading-relaxed">
                 <li>Upload Erwartungshorizont</li>
-                <li>Zuverlässige Handschrifterkennung</li>
+                <li>Zuverlässige Handschriftenerkennung</li>
                 <li>Korrektur als Word-Dokument</li>
+                <li>Keine Zahlungsdaten nötig</li>
               </ul>
-              <Link href="/expectation" className="secondary-button pricing-button">
+              <Link href="/auth" className="secondary-button pricing-button">
                 Erste Klausur kostenlos testen
               </Link>
             </div>
-            <div className="pricing-card pricing-card-highlighted">
-              <p className="pricing-badge">Pionier-Angebot</p>
+            <div className="pricing-card pricing-card-highlighted shadow-2xl ring-4 ring-blue-500/30 border-2 border-blue-600 p-10">
+              <p className="pricing-badge">Beta-Angebot</p>
               <div className="pricing-card-header">
                 <h3>Das Klassensatz-Paket</h3>
-                <p className="pricing-card-price">7,90 € <span style={{ textDecoration: 'line-through', color: 'var(--color-gray-500)', fontSize: '0.95rem' }}>29 €</span></p>
+                <p className="pricing-card-price text-6xl font-extrabold text-blue-600">7,90 € <span style={{ textDecoration: 'line-through', color: 'var(--color-gray-500)', fontSize: '0.95rem' }}>29 €</span></p>
               </div>
-              <p className="pricing-card-description">25 Klausuren (genug für eine volle Klasse). Rechnen Sie kurz nach: 0,31 € pro Heft für ca. 4 Stunden gewonnene Lebenszeit.</p>
-              <ul className="pricing-card-features">
+              <p className="pricing-card-description text-lg leading-relaxed">25 Klausuren (genug für eine volle Klasse). Das entspricht ca. 0,31 € pro Heft für Stunden gewonnener Lebenszeit.</p>
+              <ul className="pricing-card-features text-lg leading-relaxed">
                 <li>Ganzen Stapel auf einmal korrigieren</li>
                 <li>Editierbarer Word-Export für volle Kontrolle</li>
-                <li>100% Zufriedenheitsgarantie</li>
+                <li>Direkter Einfluss auf die Weiterentwicklung</li>
+                <li>100% Geld-zurück-Garantie bei Unzufriedenheit</li>
               </ul>
-              <p style={{ color: 'var(--color-gray-700)' }}>
-                Beta-Preis für die ersten 20 Lehrkräfte. 100% Geld-zurück-Garantie bei Unzufriedenheit.
-              </p>
               <Link href="/upload" className="primary-button pricing-button">
-                25 Klausuren für 7,90 € kaufen
+                Jetzt Klausuren hochladen (ab 7,90 €)
               </Link>
+              <p className="text-lg leading-relaxed" style={{ marginTop: 'var(--spacing-md)', fontSize: '0.9rem', color: 'var(--color-gray-600)', textAlign: 'center' }}>
+                Du zahlst erst, wenn du weitere Klassensätze korrigieren lässt. Keine Abo-Falle.
+              </p>
             </div>
           </div>
         </div>
@@ -282,42 +308,43 @@ export default function Home() {
       <section className="module-section" id="faq">
         <div className="container">
           <h2 className="section-title">Häufige Fragen</h2>
-          <p className="section-description">Klare Antworten zu Handschrift, Erwartungshorizont, Datenschutz und Garantie.</p>
+          <p className="section-description">Klare Antworten zu Technik, Datenschutz und Ablauf.</p>
+          
           <div className="module-grid">
-            <div className="module-card">
-              <h3>Kann die KI auch schwer lesbare Handschriften erkennen?</h3>
-              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
-                Ja. Die KI ist auf handschriftliche Texte spezialisiert und erkennt auch unleserliche Passagen. Unsichere Stellen werden im Word-Dokument markiert, damit Sie sie manuell prüfen können.
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Kann die Software auch "Sauklaue" lesen?</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Ja. Das System ist auf handschriftliche Texte spezialisiert und erkennt auch unleserliche Passagen erstaunlich gut. Sollte eine Stelle wirklich nicht entzifferbar sein, wird sie im Word-Dokument markiert, damit du sie manuell prüfen kannst.
               </p>
             </div>
-            <div className="module-card">
-              <h3>Muss ich den Erwartungshorizont abtippen?</h3>
-              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
-                Nein. Ein einfaches Foto oder PDF Ihrer Lösungsvorlage reicht. Die KI nutzt dies als Referenz für den Abgleich.
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Wie bekomme ich die Klausuren in die Software?</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Du benötigst die Klausuren als PDF. Das geht ganz einfach: Nutze den Scanner im Schulkopierer (Scan-to-Email/USB) oder eine kostenlose Scan-App auf dem Handy (z.B. Google Drive Scan, Notizen-App auf iOS). Fotos (JPG) funktionieren nicht direkt – bitte als PDF speichern.
               </p>
             </div>
-            <div className="module-card">
-              <h3>Habe ich das letzte Wort bei der Note?</h3>
-              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
-                Absolut. Sie erhalten ein editierbares Word-Dokument. Sie können Punkte anpassen und Kommentare ändern – Sie behalten die volle pädagogische Kontrolle.
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Muss ich den Erwartungshorizont abtippen?</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Nein. Ein Foto oder PDF deiner Lösungsvorlage oder des Erwartungshorizonts reicht völlig aus. Das System nutzt dieses Dokument als Referenz für den Abgleich.
               </p>
             </div>
-            <div className="module-card">
-              <h3>Was muss ich beim Datenschutz beachten?</h3>
-              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
-                Für diesen Test: Bitte schwärzen Sie die Namen der Schüler vor dem Scan. Wir verarbeiten keine personenbezogenen Daten. Serverstandort ist Deutschland.
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Was passiert mit den Daten (Datenschutz)?</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Deine Daten werden auf Servern in Deutschland verarbeitet. In der aktuellen Beta-Phase empfehlen wir, Namen auf den Klausuren vor dem Scan zu schwärzen oder abzudecken, um maximale Anonymität zu gewährleisten.
               </p>
             </div>
-            <div className="module-card">
-              <h3>Was passiert, wenn mir das Ergebnis nicht hilft?</h3>
-              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
-                Dann greift unsere Zufriedenheitsgarantie: Kurze Mail an uns, und Sie erhalten Ihre 7,90 € sofort zurück.
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Habe ich das letzte Wort bei der Note?</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Absolut. Du erhältst ein editierbares Word-Dokument. Du kannst Punkte anpassen, Kommentare ändern und die pädagogische Hoheit behalten. KorrekturPilot ist ein Werkzeug, kein Ersatz für deine Entscheidung.
               </p>
             </div>
-            <div className="module-card">
-              <h3>Brauche ich technische Vorkenntnisse?</h3>
-              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
-                Nein. PDF vom Schulkopierer oder Handy-Scan hochladen, fertig. Es ist keine Installation nötig.
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Was, wenn mir das Ergebnis nicht hilft?</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Dann greift unsere Zufriedenheitsgarantie: Schreibe uns eine kurze Mail und du erhältst deine 7,90 € sofort zurück.
               </p>
             </div>
           </div>
@@ -326,22 +353,20 @@ export default function Home() {
 
       <section className="module-section" id="social-proof">
         <div className="container">
-          <h2 className="section-title">Helfen Sie uns, den perfekten Korrektur-Assistenten zu bauen.</h2>
-          <p className="section-description">Wir sind in der Beta mit 20 Pionier:innen. Ihr Feedback fließt direkt ins nächste Update – und Sie sichern sich den Vorzugspreis.</p>
+          <h2 className="section-title">Baue mit uns das ideale Werkzeug für Lehrkräfte.</h2>
+          <p className="section-description">Dein Feedback fließt direkt ins nächste Update – und du sicherst dir dauerhaft günstige Konditionen.</p>
           <div className="module-grid">
-            <div className="module-card">
-              <h3>Ihr Vorteil als Tester</h3>
-              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
-                Ihr Feedback fließt direkt in die Produktentwicklung. Fehlt ein Feature? Passt das Format nicht? Als Beta-Tester haben Sie direkten Einfluss auf Updates.
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Dein Vorteil als Beta-Lehrkraft</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Du hast direkten Draht zur Entwicklung. Fehlt ein Feature? Passt das Format nicht? Als Beta-Nutzer bestimmst du mit, was als Nächstes passiert.
               </p>
             </div>
-            <div className="module-card">
-              <h3>Warum jetzt?</h3>
-              <ul style={{ lineHeight: 1.6, color: 'var(--color-gray-700)', paddingLeft: 'var(--spacing-lg)' }}>
-                <li>Beta-Preis: 7,90 € statt 29 €</li>
-                <li>Direkter Einfluss auf neue Features</li>
-                <li>Von Lehrkräften für Lehrkräfte entwickelt</li>
-              </ul>
+            <div className="module-card h-full p-8">
+              <h3 className="font-bold">Warum jetzt?</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Sichere dir den günstigen Einstiegspreis und hilf uns, eine Lösung zu schaffen, die wirklich den Schulalltag erleichtert – von Lehrkräften für Lehrkräfte entwickelt.
+              </p>
             </div>
           </div>
         </div>
@@ -350,24 +375,23 @@ export default function Home() {
       <section className="module-section" id="trust">
         <div className="container">
           <h2 className="section-title">Vertrauen &amp; Sicherheit zuerst.</h2>
-          <p className="section-description">Datenschutz, Support und klare Ansprechpartner – bevor Sie etwas hochladen.</p>
           <div className="module-grid">
-            <div className="module-card">
-              <h3>Anonymisierung</h3>
-              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
-                Hinweis für Tester: Bitte schwärzen Sie die Namen der Schüler vor dem Scan oder nutzen Sie anonymisierte Klausuren. So sind Sie datenschutzrechtlich zu 100% auf der sicheren Seite.
+            <div className="module-card p-8">
+              <h3 className="font-bold">Anonymisierung</h3>
+              <p className="text-lg leading-relaxed" style={{ color: 'var(--color-gray-700)' }}>
+                Wir speichern so wenig Daten wie möglich. Lade am besten anonymisierte Klausuren hoch (Namen abdecken), um auf der absolut sicheren Seite zu sein.
               </p>
             </div>
-            <div className="module-card">
-              <h3>Geld-zurück-Garantie</h3>
-              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
-                100% Zufriedenheitsgarantie: Wenn die Korrektur Ihnen keine Zeit spart, bekommen Sie Ihr Geld sofort zurück.
+            <div className="module-card p-8">
+              <h3 className="font-bold">Geld-zurück-Garantie</h3>
+              <p className="text-lg leading-relaxed" style={{ color: 'var(--color-gray-700)' }}>
+                100% Zufriedenheitsgarantie: Wenn die Korrektur dir keine Zeit spart, bekommst du dein Geld sofort zurück.
               </p>
             </div>
-            <div className="module-card">
-              <h3>Kontakt &amp; Support</h3>
-              <p style={{ color: 'var(--color-gray-700)', lineHeight: 1.6 }}>
-                Fragen an die Entwickler? Schreiben Sie an <a href="mailto:conrads@gannaca.com" className="text-link">conrads@gannaca.com</a>. Serverstandort: Deutschland.
+            <div className="module-card p-8">
+              <h3 className="font-bold">Kontakt &amp; Support</h3>
+              <p className="text-lg leading-relaxed" style={{ color: 'var(--color-gray-700)' }}>
+                Fragen? Schreib uns direkt an <a href="mailto:conrads@gannaca.com" className="text-link">conrads@gannaca.com</a>. Wir antworten persönlich und schnell. Serverstandort: Deutschland.
               </p>
             </div>
           </div>
@@ -378,12 +402,11 @@ export default function Home() {
         <div className="container">
           <div className="cta-card">
             <div>
-              <p className="cta-badge">Bereit?</p>
               <h2>Jetzt registrieren und erste Klausur kostenlos testen.</h2>
-              <p>Credits werden bei der kostenlosen Registrierung zur Verfügung gestellt. 4,5 Stunden weniger Korrekturzeit pro Klassensatz – ab heute.</p>
+              <p className="text-lg leading-relaxed">Credits werden bei der kostenlosen Registrierung sofort freigeschaltet. Dein erster Klassensatz kann in weniger als einer Stunde fertig korrigiert sein.</p>
             </div>
             <div className="cta-actions">
-              <Link href="/expectation" className="primary-button">
+              <Link href="/auth" className="primary-button">
                 Erste Klausur kostenlos testen
               </Link>
             </div>

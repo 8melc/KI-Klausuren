@@ -67,8 +67,8 @@
 
 body {
     font-family: var(--font-sans);
-    font-size: 16px;
-    line-height: 1.6;
+    font-size: 1.125rem; /* text-lg */
+    line-height: 1.75; /* leading-relaxed */
     color: var(--color-gray-900);
     background-color: var(--color-gray-50);
     -webkit-font-smoothing: antialiased;
@@ -189,7 +189,7 @@ body {
 .hero {
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     color: white;
-    padding: var(--spacing-2xl) 0;
+    padding: 8rem 0; /* py-32 */
 }
 
 .hero-content {
@@ -199,16 +199,24 @@ body {
 }
 
 .hero-title {
-    font-size: 3rem;
-    font-weight: 800;
+    font-size: 3.75rem;
+    font-weight: 900;
     margin-bottom: var(--spacing-md);
-    line-height: 1.2;
+    line-height: 1.1;
+}
+
+@media (min-width: 1024px) {
+    .hero-title {
+        font-size: 4.5rem;
+    }
 }
 
 .hero-subtitle {
-    font-size: 1.125rem;
-    opacity: 0.9;
+    font-size: 1.5rem;
+    opacity: 0.95;
     margin-bottom: var(--spacing-lg);
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .hero-tag {
@@ -278,7 +286,7 @@ body {
 }
 
 .module-section {
-    padding: var(--spacing-2xl) 0;
+    padding: 6rem 0; /* py-24 */
     background: white;
 }
 
@@ -291,23 +299,28 @@ body {
 .module-card {
     border: 1px solid var(--color-gray-200);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    padding: 2rem;
     box-shadow: var(--shadow-sm);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .module-card h3 {
     font-size: 1.125rem;
     margin-bottom: var(--spacing-sm);
     color: var(--color-gray-900);
+    font-weight: 600;
 }
 
 .module-card p {
     color: var(--color-gray-600);
-    line-height: 1.6;
+    line-height: 1.75;
+    flex: 1;
 }
 
 .pricing-section {
-    padding: var(--spacing-2xl) 0;
+    padding: 6rem 0; /* py-24 */
     background: var(--color-gray-50);
 }
 
@@ -326,7 +339,7 @@ body {
     background: white;
     border: 1px solid var(--color-gray-200);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
@@ -334,8 +347,10 @@ body {
 }
 
 .pricing-card-highlighted {
-    border-color: var(--color-primary);
-    box-shadow: var(--shadow-md);
+    border-color: #2563eb;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-width: 2px;
+    position: relative;
 }
 
 .pricing-card-header h3 {
@@ -345,9 +360,14 @@ body {
 }
 
 .pricing-card-price {
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: 3rem;
+    font-weight: 800;
     color: var(--color-gray-900);
+    line-height: 1;
+}
+
+.pricing-card-highlighted .pricing-card-price {
+    font-size: 3.5rem;
 }
 
 .pricing-card-price span {
@@ -393,7 +413,7 @@ body {
 /* ==================== */
 
 .how-it-works {
-    padding: var(--spacing-2xl) 0;
+    padding: 6rem 0; /* py-24 */
     background: white;
 }
 
@@ -406,10 +426,12 @@ body {
 }
 
 .section-description {
-    max-width: 720px;
+    max-width: 48rem;
     margin: 0 auto var(--spacing-xl);
     text-align: center;
     color: var(--color-gray-600);
+    font-size: 1.125rem;
+    line-height: 1.75;
 }
 
 .process-grid {
@@ -520,7 +542,7 @@ body {
 }
 
 .cta-section {
-    padding: var(--spacing-2xl) 0;
+    padding: 6rem 0; /* py-24 */
 }
 
 .cta-card {
@@ -593,14 +615,15 @@ body {
 
 .step-title {
     font-size: 1.125rem;
-    font-weight: 600;
+    font-weight: 700; /* font-bold */
     margin-bottom: var(--spacing-xs);
     color: var(--color-gray-900);
 }
 
 .step-description {
     color: var(--color-gray-600);
-    font-size: 0.9375rem;
+    font-size: 1.125rem; /* text-lg */
+    line-height: 1.75; /* leading-relaxed */
 }
 
 /* ==================== */
@@ -835,7 +858,7 @@ body {
     background: var(--color-primary);
     color: white;
     border: none;
-    padding: var(--spacing-md) var(--spacing-xl);
+    padding: 1rem 2rem;
     border-radius: var(--radius-lg);
     font-size: 1rem;
     font-weight: 600;
@@ -1891,11 +1914,11 @@ body {
 @media (max-width: 768px) {
     /* Typography */
     .hero-title {
-        font-size: 1.75rem;
+        font-size: 2.25rem;
     }
     
     .hero-subtitle {
-        font-size: 1rem;
+        font-size: 1.125rem;
     }
     
     .section-title {
