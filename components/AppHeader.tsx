@@ -6,8 +6,9 @@ import AuthButton from './AuthButton';
 import CreditsDisplay from './CreditsDisplay';
 
 const NAV_LINKS = [
-  { href: '/correction', label: 'Korrektur' },
+  { href: '/correction', label: 'Korrektur starten' },
   { href: '/results', label: 'Ergebnisse' },
+  { href: '/dashboard', label: 'Dashboard' },
 ];
 
 const isActivePath = (pathname: string, href: string) => {

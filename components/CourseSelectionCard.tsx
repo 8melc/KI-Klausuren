@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { CourseInfo } from '@/types/results';
 
 interface CourseSelectionCardProps {
@@ -9,6 +9,7 @@ interface CourseSelectionCardProps {
   subjectOptions: string[];
   gradeOptions: string[];
   classOptions: string[];
+  blinkingField?: keyof CourseInfo | null;
 }
 
 export default function CourseSelectionCard({
@@ -17,8 +18,41 @@ export default function CourseSelectionCard({
   subjectOptions,
   gradeOptions,
   classOptions,
+  blinkingField,
 }: CourseSelectionCardProps) {
   const [isCustomMode, setIsCustomMode] = useState(false);
+  const [isBlinking, setIsBlinking] = useState(false);
+  
+  useEffect(() => {
+    if (blinkingField) {
+      setIsBlinking(true);
+      const interval = setInterval(() => {
+        setIsBlinking((prev) => !prev);
+      }, 300);
+      
+      const timeout = setTimeout(() => {
+        clearInterval(interval);
+        setIsBlinking(false);
+      }, 2000);
+      
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    } else {
+      setIsBlinking(false);
+    }
+  }, [blinkingField]);
+  
+  const getFieldClass = (field: keyof CourseInfo) => {
+    const baseClass = 'w-full rounded-xl border px-3 py-2 text-sm font-medium outline-none transition-all duration-300';
+    const isFieldBlinking = blinkingField === field && isBlinking;
+    
+    if (isFieldBlinking) {
+      return `${baseClass} border-red-500 ring-2 ring-red-500 bg-red-50 text-gray-700`;
+    }
+    return `${baseClass} border-gray-300 text-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500`;
+  };
   
   const fieldClass =
     'w-full rounded-xl border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500';
@@ -57,7 +91,7 @@ export default function CourseSelectionCard({
         <div className="flex-1 min-w-[180px] space-y-2">
           <p className="text-xs font-semibold uppercase text-gray-500">Fach</p>
           <select
-            className={fieldClass}
+            className={getFieldClass('subject')}
             value={isStandardSubject ? course.subject : showCustomInput ? 'Sonstiges' : course.subject || ''}
             onChange={(event) => handleSubjectChange(event.target.value)}
           >
@@ -71,7 +105,7 @@ export default function CourseSelectionCard({
           {showCustomInput && (
             <input
               type="text"
-              className={fieldClass}
+              className={getFieldClass('subject')}
               placeholder="Eigenes Fach eingeben"
               value={course.subject || ''}
               onChange={(event) => handleCustomSubjectChange(event.target.value)}
@@ -83,7 +117,7 @@ export default function CourseSelectionCard({
         <div className="flex-1 min-w-[140px] space-y-2">
           <p className="text-xs font-semibold uppercase text-gray-500">Jahrgang</p>
           <select
-            className={fieldClass}
+            className={getFieldClass('gradeLevel')}
             value={course.gradeLevel}
             onChange={(event) => onChange('gradeLevel', event.target.value)}
           >
@@ -98,7 +132,7 @@ export default function CourseSelectionCard({
         <div className="flex-1 min-w-[140px] space-y-2">
           <p className="text-xs font-semibold uppercase text-gray-500">Klasse</p>
           <select
-            className={fieldClass}
+            className={getFieldClass('className')}
             value={course.className}
             onChange={(event) => onChange('className', event.target.value)}
           >
@@ -113,7 +147,7 @@ export default function CourseSelectionCard({
         <div className="flex-1 min-w-[140px] space-y-2">
           <p className="text-xs font-semibold uppercase text-gray-500">Schuljahr</p>
           <input
-            className={fieldClass}
+            className={getFieldClass('schoolYear')}
             value={course.schoolYear}
             onChange={(event) => onChange('schoolYear', event.target.value)}
             placeholder="2025/26"

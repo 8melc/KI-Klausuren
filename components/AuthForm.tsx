@@ -34,13 +34,18 @@ export default function EmailAuthForm({ mode, onClose, onSwitchMode, onGoogleSig
         if (data.user && data.session) {
           // User ist direkt eingeloggt (E-Mail-Bestätigung deaktiviert)
           toast.success('Registrierung erfolgreich!');
-          onClose?.();
-          // Weiterleitung zum Dashboard mit Welcome-Parameter
-          router.push('/dashboard?welcome=true');
+          if (onClose) {
+            onClose();
+          } else {
+            // Weiterleitung zum Dashboard mit Welcome-Parameter (Fallback)
+            router.push('/dashboard?welcome=true');
+          }
         } else {
           // E-Mail-Bestätigung erforderlich
-          toast.info('Bitte E-Mail bestätigen! Du wirst nach der Bestätigung zum Dashboard weitergeleitet.');
-          onClose?.();
+          toast.info('Bitte E-Mail bestätigen! Du wirst nach der Bestätigung weitergeleitet.');
+          if (onClose) {
+            onClose();
+          }
           // Warte auf E-Mail-Bestätigung (wird via Auth-Callback gehandhabt)
           // User wird nach Bestätigung automatisch zu /auth/callback weitergeleitet
         }
@@ -64,9 +69,12 @@ export default function EmailAuthForm({ mode, onClose, onSwitchMode, onGoogleSig
         toast.error(error.message);
       } else {
         toast.success('Erfolgreich angemeldet!');
-        onClose?.();
-        // Nach erfolgreichem Login zum Dashboard weiterleiten
-        router.push('/dashboard');
+        if (onClose) {
+          onClose();
+        } else {
+          // Nach erfolgreichem Login zum Dashboard weiterleiten (Fallback)
+          router.push('/dashboard');
+        }
       }
     } catch (err) {
       setLoading(false);
@@ -80,12 +88,12 @@ export default function EmailAuthForm({ mode, onClose, onSwitchMode, onGoogleSig
       {/* Überschrift + Subheadline */}
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">
-          {mode === 'login' ? 'Einloggen' : 'Registrieren'}
+          {mode === 'login' ? 'Willkommen zurück' : 'Zeit sparen & Nerven schonen'}
         </h1>
         <p className="text-gray-600 text-sm mt-2">
           {mode === 'login' 
-            ? 'Melde dich bei deinem KorrekturPilot-Konto an'
-            : 'Erstelle dein Konto für KorrekturPilot'}
+            ? 'Bereit für die nächste Korrektur-Runde?'
+            : 'Starte jetzt deine erste KI-gestützte Korrektur. Kostenlos & unverbindlich.'}
         </p>
       </div>
 
@@ -133,7 +141,7 @@ export default function EmailAuthForm({ mode, onClose, onSwitchMode, onGoogleSig
           onClick={handleSignup}
           disabled={loading}
         >
-          {loading ? 'Lädt...' : 'Registrieren'}
+          {loading ? 'Lädt...' : 'Kostenlos starten'}
         </button>
       )}
 
@@ -149,10 +157,10 @@ export default function EmailAuthForm({ mode, onClose, onSwitchMode, onGoogleSig
           {/* Google Login Button */}
           <button
             onClick={onGoogleSignIn}
-            className="w-full flex items-center justify-center gap-2 border border-gray-300 py-3 rounded-xl hover:bg-gray-50 transition"
+            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-300 py-3 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -170,7 +178,7 @@ export default function EmailAuthForm({ mode, onClose, onSwitchMode, onGoogleSig
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            <span className="font-medium text-gray-700">Mit Google anmelden</span>
+            <span className="font-semibold text-gray-700">Mit Google anmelden</span>
           </button>
         </>
       )}
