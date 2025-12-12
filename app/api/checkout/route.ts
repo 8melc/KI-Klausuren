@@ -65,7 +65,7 @@ export async function POST(req: Request) {
           quantity: 1,
         },
       ],
-      success_url: `${baseUrl}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/dashboard?checkout=cancelled`,
       metadata: {
         userId: user.id,
@@ -73,14 +73,18 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json({ url: session.url })
-  } catch (error) {
+  } catch (error: any) {
     if (process.env.NODE_ENV === 'development') {
       console.error('Stripe checkout error:', error)
     }
+
+    const message =
+      (error as any)?.message ||
+      (typeof error === 'string' ? error : null) ||
+      'Checkout-Session konnte nicht erstellt werden'
+
     return NextResponse.json(
-      {
-        error: 'Checkout-Session konnte nicht erstellt werden',
-      },
+      { error: message },
       { status: 500 }
     )
   }

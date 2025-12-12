@@ -43,7 +43,11 @@ export async function buyCredits(): Promise<void> {
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}))
-      throw new Error(errorData.error || 'Checkout konnte nicht erstellt werden')
+      throw new Error(
+        typeof errorData.error === 'string'
+          ? errorData.error
+          : 'Checkout konnte nicht erstellt werden'
+      )
     }
 
     const { url } = await res.json()

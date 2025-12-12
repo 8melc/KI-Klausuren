@@ -205,9 +205,54 @@ Orientiere dich an der bereitgestellten Vorlage für Stil, Detaillierungsgrad un
       throw new Error('Keine Antwort von OpenAI erhalten');
     }
 
-    // DEBUG: Zähle Aufgaben im Erwartungshorizont
-    const aufgabenImErwartungshorizont = erwartungshorizont.match(/\d+\.\d+/g) || [];
-    const uniqueAufgaben = [...new Set(aufgabenImErwartungshorizont)];
+    // ============================================================================
+    // ROBUSTE TASK-EXTRAKTION: Multi-Pass Regex mit Fallbacks
+    // ============================================================================
+    const parseExpectationHorizon = (text: string): string[] => {
+      const tasks: string[] = [];
+      
+      // PASS 1: Strikte IDs (1.1, 1.2, 2.3, etc.)
+      const strictMatches = text.match(/\d+\.\d+/g) || [];
+      if (strictMatches.length > 0) {
+        const unique = [...new Set(strictMatches)];
+        console.log('[Task-Parse] Pass 1 (strikt):', unique.length, 'Aufgaben gefunden');
+        return unique;
+      }
+      
+      // PASS 2: "Aufgabe X" oder "Frage X" oder "Task X"
+      const aufgabeMatches = text.match(/(?:Aufgabe|Frage|Task)\s+(\d+(?:\.\d+)?)/gi) || [];
+      if (aufgabeMatches.length > 0) {
+        const extracted = aufgabeMatches.map(m => {
+          const numMatch = m.match(/\d+(?:\.\d+)?/);
+          return numMatch ? numMatch[0] : '';
+        }).filter(Boolean);
+        const unique = [...new Set(extracted)];
+        console.log('[Task-Parse] Pass 2 (Aufgabe/Frage):', unique.length, 'Aufgaben gefunden');
+        return unique;
+      }
+      
+      // PASS 3: Einfache Nummern am Zeilenanfang (1., 2., 1), 2)), etc.
+      const lines = text.split('\n');
+      const lineNumberMatches: string[] = [];
+      for (const line of lines) {
+        // Suche nach Nummern am Zeilenanfang: "1.", "2.", "1)", "2)", etc.
+        const match = line.match(/^\s*(\d+)[\.\)]\s/);
+        if (match) {
+          lineNumberMatches.push(match[1]);
+        }
+      }
+      if (lineNumberMatches.length > 0) {
+        const unique = [...new Set(lineNumberMatches)];
+        console.log('[Task-Parse] Pass 3 (Zeilenanfang):', unique.length, 'Aufgaben gefunden');
+        return unique;
+      }
+      
+      // NOTFALL-MODUS: Keine Aufgabenstruktur erkannt
+      console.warn('[Task-Parse] ⚠️ Keine explizite Aufgabenstruktur erkannt. Nutze gesamten Text als eine Aufgabe.');
+      return ['Gesamt'];
+    };
+    
+    const uniqueAufgaben = parseExpectationHorizon(erwartungshorizont);
     console.log('=== OPENAI RESPONSE DEBUG (alte Funktion) ===');
     console.log('Anzahl Aufgaben im Erwartungshorizont:', uniqueAufgaben.length);
     console.log('Aufgaben IDs im Erwartungshorizont:', uniqueAufgaben);

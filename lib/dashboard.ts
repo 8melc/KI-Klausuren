@@ -84,7 +84,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   // Gruppiere nach Fach und Datum
   const groupedCorrections = new Map<string, { count: number; date: Date; subject: string; grade: string }>()
   
-  recentCorrectionsData?.forEach((correction) => {
+  recentCorrectionsData?.forEach((correction: { course_subject: string | null; created_at: string; course_grade_level: string | null }) => {
     const key = `${correction.course_subject}-${new Date(correction.created_at).toLocaleDateString('de-DE')}`
     const existing = groupedCorrections.get(key)
     

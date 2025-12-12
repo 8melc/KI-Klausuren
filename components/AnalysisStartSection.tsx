@@ -5,13 +5,19 @@ interface AnalysisStartSectionProps {
   onStart: () => void;
   error?: string | null;
   isAnalyzing?: boolean;
-  progress?: { current: number; total: number; currentFile: string } | null;
+  progress?: { current: number; total: number; currentFile: string } | number | null;
+  buttonText?: string;
 }
 
-export default function AnalysisStartSection({ disabled, onStart, error, isAnalyzing = false, progress }: AnalysisStartSectionProps) {
+export default function AnalysisStartSection({ disabled, onStart, error, isAnalyzing = false, progress, buttonText }: AnalysisStartSectionProps) {
   return (
     <div className="cta-card" style={{ textAlign: 'center' }}>
       <div>
+        {!disabled && !isAnalyzing && (
+          <p className="text-sm text-slate-700 mb-3">
+            Alle Dateien wurden hinterlegt. Starten Sie jetzt die Analyse, um die Klausuren automatisch auswerten zu lassen.
+          </p>
+        )}
         <button
           type="button"
           className="primary-button"
@@ -33,11 +39,11 @@ export default function AnalysisStartSection({ disabled, onStart, error, isAnaly
               Analyse läuft...
             </span>
           ) : (
-            <span>Analyse starten</span>
+            <span>{buttonText || 'Analyse starten'}</span>
           )}
         </button>
         
-        {isAnalyzing && progress && (
+        {isAnalyzing && progress && typeof progress === 'object' && progress !== null && 'current' in progress && (
           <div style={{ 
             marginTop: 'var(--spacing-lg)', 
             padding: 'var(--spacing-lg)', 
@@ -71,7 +77,7 @@ export default function AnalysisStartSection({ disabled, onStart, error, isAnaly
               <div style={{ 
                 height: '100%', 
                 background: 'var(--color-primary)', 
-                width: `${(progress.current / progress.total) * 100}%`,
+                width: `${Math.round((progress.current / progress.total) * 100)}%`,
                 transition: 'width 0.3s ease',
               }} />
             </div>

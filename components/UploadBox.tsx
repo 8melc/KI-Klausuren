@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import { toast } from 'sonner';
 
 export interface UploadedFile {
   id: string;
@@ -15,7 +16,11 @@ interface UploadBoxProps {
   allowMultiple?: boolean;
   onUpload: (files: UploadedFile[]) => void;
   disabled?: boolean;
+  onDisabledClick?: () => void;
 }
+
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+const MAX_FILE_SIZE_MB = 50;
 
 export default function UploadBox({
   title,
@@ -24,20 +29,49 @@ export default function UploadBox({
   allowMultiple = false,
   onUpload,
   disabled = false,
+  onDisabledClick,
 }: UploadBoxProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = (files: FileList | File[]) => {
-    const selected = Array.from(files)
-      .filter((file) => file.type === 'application/pdf')
-      .map((file) => ({
-        id: `${file.name}-${Date.now()}`,
+    const selected: UploadedFile[] = [];
+    const errors: string[] = [];
+
+    Array.from(files).forEach((file) => {
+      // Typ prüfen
+      if (file.type !== 'application/pdf') {
+        errors.push(`${file.name}: Nur PDF-Dateien sind erlaubt.`);
+        return;
+      }
+
+      // Größe prüfen
+      if (file.size > MAX_FILE_SIZE) {
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        errors.push(
+          `${file.name}: Diese Datei ist zu groß (${fileSizeMB} MB). Maximal ${MAX_FILE_SIZE_MB} MB erlaubt.`
+        );
+        return;
+      }
+
+      selected.push({
+        id: `${file.name}-${Date.now()}-${Math.random()}`,
         fileName: file.name,
         file,
-      }));
+      });
+    });
+
+    if (errors.length > 0) {
+      const message = errors.join('\n');
+      // Wenn toast verfügbar ist, nutze ihn für besseres UX
+      if (toast) {
+        toast.error(message);
+      } else {
+        alert(message);
+      }
+    }
 
     if (selected.length === 0) {
-      alert('Bitte laden Sie nur PDF-Dateien hoch.');
+      // Keine gültigen Dateien
       return;
     }
 
@@ -45,8 +79,18 @@ export default function UploadBox({
   };
 
   const triggerDialog = () => {
-    if (disabled) return;
+    if (disabled) {
+      onDisabledClick?.();
+      return;
+    }
     fileInputRef.current?.click();
+  };
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (disabled && onDisabledClick) {
+      onDisabledClick();
+    }
   };
 
   return (
@@ -60,7 +104,17 @@ export default function UploadBox({
       flexDirection: 'column',
       gap: 'var(--spacing-md)',
       minHeight: '200px',
+      position: 'relative',
     }}>
+      {disabled && (
+        <div
+          className="absolute inset-0 z-10 cursor-not-allowed"
+          onClick={handleOverlayClick}
+          style={{
+            borderRadius: 'var(--radius-lg)',
+          }}
+        />
+      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
         <div style={{
           borderRadius: 'var(--radius-lg)',
@@ -106,6 +160,7 @@ export default function UploadBox({
         className="hidden"
         accept="application/pdf"
         multiple={allowMultiple}
+        disabled={disabled}
         onChange={(event) => {
           if (event.target.files) {
             handleFiles(event.target.files);

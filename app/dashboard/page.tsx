@@ -5,10 +5,25 @@ import { getSubscriptionStatus } from '@/lib/subscription';
 import DashboardCreditsCard from '@/components/DashboardCreditsCard';
 import WelcomeBanner from '@/components/WelcomeBanner';
 import CheckoutSessionHandler from '@/components/CheckoutSessionHandler';
+import { createClient } from '@/lib/supabase/server';
 
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
   const subscription = await getSubscriptionStatus();
+  
+  // Lade User-Daten mit Kaufinformationen
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  
+  const { data: userRow } = user
+    ? await supabase
+        .from("users")
+        .select("credits, last_credits_purchase_at, last_credits_amount")
+        .eq("id", user.id)
+        .single()
+    : { data: null };
 
   const summaryCards = [
     {
@@ -58,23 +73,29 @@ export default async function DashboardPage() {
           <div className="account-grid" style={{ marginTop: 'var(--spacing-2xl)' }}>
             <div className="account-card">
               <p className="account-card-title">Abonnement</p>
-              <div className={`beta-status ${subscription.hasActiveSubscription ? '' : 'beta-status-warning'}`}>
+              <div className={`beta-status ${userRow?.last_credits_purchase_at ? '' : 'beta-status-warning'}`}>
                 <span className="beta-dot" />
                 <div>
-                  <p className="beta-status-title">
-                    {subscription.hasActiveSubscription ? 'Aktiv' : 'Kein aktives Abonnement'}
-                  </p>
-                      <p className="beta-status-description">
-                    {subscription.lastPayment
-                      ? (() => {
-                          const date = subscription.lastPayment.date;
-                          const day = date.getDate().toString().padStart(2, '0');
-                          const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                          const year = date.getFullYear().toString().slice(-2);
-                          return `Sie haben am ${day}.${month}.${year} eine Zahlung von ${subscription.lastPayment.amount.toFixed(2)}€ für ${subscription.lastPayment.klausuren} Klausuren getätigt.`;
-                        })()
-                      : 'Sie haben bisher nichts gekauft.'}
-                  </p>
+                  {userRow?.last_credits_purchase_at ? (
+                    <div className="rounded-xl bg-yellow-50 px-6 py-4">
+                      <p className="font-semibold text-slate-900">
+                        Sie haben am{" "}
+                        {new Date(userRow.last_credits_purchase_at).toLocaleDateString("de-DE")}{" "}
+                        {userRow.last_credits_amount ?? 25} Credits gekauft.
+                      </p>
+                      <p className="text-sm text-slate-700 mt-1">
+                        Credits verlieren keine Gültigkeit und stehen Ihnen so lange zur
+                        Verfügung, bis sie vollständig aufgebraucht sind.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl bg-yellow-50 px-6 py-4">
+                      <p className="font-semibold text-slate-900">Kein aktives Abonnement</p>
+                      <p className="text-sm text-slate-700">
+                        Sie haben bisher nichts gekauft.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="cta-actions" style={{ marginTop: 'var(--spacing-lg)' }}>

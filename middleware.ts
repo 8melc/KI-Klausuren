@@ -63,7 +63,16 @@ export async function middleware(request: NextRequest) {
 
   )
 
+  // Nach dem Erstellen des Supabase-Clients und vor dem Redirect zum Login:
+  const { pathname } = request.nextUrl;
 
+  // Stripe-Checkout-Success: Seite immer durchlassen, auch wenn getUser kurz null liefert
+  const isStripeCheckoutSuccess =
+    pathname === "/checkout/success";
+
+  if (isStripeCheckoutSuccess) {
+    return NextResponse.next();
+  }
 
   // 🔥 WICHTIG: Auth-Callback nicht stören - lasse Route.ts den Code-Exchange machen
   if (request.nextUrl.pathname === '/auth/callback') {
