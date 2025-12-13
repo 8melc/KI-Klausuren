@@ -1,9 +1,11 @@
 'use client';
 
-import type { UploadQueueItem, UploadStatus } from '@/hooks/useUploadQueue';
+import type { QueueItem } from '@/hooks/useUploadQueue';
+
+type UploadStatus = QueueItem['status'];
 
 interface UploadProgressListProps {
-  items: UploadQueueItem[];
+  items: QueueItem[];
   onRetry: (id: string) => void;
   onRemove: (id: string) => void;
 }
@@ -220,3 +222,4 @@ export default function UploadProgressList({
     </div>
   );
 }
+

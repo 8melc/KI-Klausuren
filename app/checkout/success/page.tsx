@@ -1,10 +1,10 @@
 // app/checkout/success/page.tsx
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
@@ -43,5 +43,18 @@ export default function CheckoutSuccessPage() {
         Du wirst gleich zu deinem Dashboard weitergeleitet…
       </p>
     </main>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={
+      <main className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-semibold mb-2">Zahlung erfolgreich</h1>
+        <p className="text-gray-600">Lädt...</p>
+      </main>
+    }>
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }
