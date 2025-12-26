@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /auth
+Disallow: /api
+Disallow: /admin
+Disallow: /correction
+Disallow: /results
+Disallow: /upload
+Disallow: /expectation
+Disallow: /checkout
+
+Sitemap: https://www.korrekturpilot.de/sitemap.xml
+
+
+
+
+
+

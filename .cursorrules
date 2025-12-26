@@ -1,0 +1,12 @@
+- Verwende ausschließlich TypeScript.
+- Nutze Next.js 14 mit App Router.
+- Lege API-Routen unter app/api/<route>/route.ts an.
+- Implementiere Datei-Uploads mit Uploadthing oder Vercel-Blob.
+- Verwende pdf-parse für PDF-Extraktion.
+- Verwende pdf-lib für PDF-Generierung.
+- Nutze OpenAI SDK v4 für Analyse-Aufgaben.
+- Strukturiere den Code modular (lib/ für Helper, components/ für UI).
+- Eingehende KI-Analysen sollen immer im JSON-Format zurückgegeben werden.
+- Verwende klare, funktionale Komponenten.
+- Nutze Tailwind CSS für das Styling.
+

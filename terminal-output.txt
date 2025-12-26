@@ -1,0 +1,826 @@
+POST /api/upload-url 200 in 517ms (compile: 4ms, proxy.ts: 143ms, render: 370ms)
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/8985f0ee-ab1f-4b49-9a2c-71e38e12feff_Klausur_Q1_Chemie_FINAL.pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/8985f0ee-ab1f-4b49-9a2c-71e38e12feff_Klausur_Q1_Chemie_FINAL.pdf] Datei geladen, Größe: 543393 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/8985f0ee-ab1f-4b49-9a2c-71e38e12feff_Klausur_Q1_Chemie_FINAL.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+Handschrift-Extraktion abgeschlossen: 5114 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/8985f0ee-ab1f-4b49-9a2c-71e38e12feff_Klausur_Q1_Chemie_FINAL.pdf] Handschrift-Extraktion erfolgreich: 5114 Zeichen
+ POST /api/extract-klausur 200 in 14.7s (compile: 3ms, proxy.ts: 63ms, render: 14.6s)
+ POST /api/upload-url 200 in 333ms (compile: 6ms, proxy.ts: 173ms, render: 154ms)
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/4ac52c32-2063-444d-bef9-8449ae523337_Klausur_Viktoria.pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/4ac52c32-2063-444d-bef9-8449ae523337_Klausur_Viktoria.pdf] Datei geladen, Größe: 4284670 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/4ac52c32-2063-444d-bef9-8449ae523337_Klausur_Viktoria.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+Handschrift-Extraktion abgeschlossen: 1488 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/4ac52c32-2063-444d-bef9-8449ae523337_Klausur_Viktoria.pdf] Handschrift-Extraktion erfolgreich: 1488 Zeichen
+ POST /api/extract-klausur 200 in 13.4s (compile: 8ms, proxy.ts: 131ms, render: 13.3s)
+ POST /api/upload-url 200 in 320ms (compile: 6ms, proxy.ts: 123ms, render: 192ms)
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/48d294a0-c7ba-4434-9e74-7f7c4f721848_Erwartungshorizont_und_Musterantworten.pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/48d294a0-c7ba-4434-9e74-7f7c4f721848_Erwartungshorizont_und_Musterantworten.pdf] Datei geladen, Größe: 65411 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/48d294a0-c7ba-4434-9e74-7f7c4f721848_Erwartungshorizont_und_Musterantworten.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+Handschrift-Extraktion abgeschlossen: 1487 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/48d294a0-c7ba-4434-9e74-7f7c4f721848_Erwartungshorizont_und_Musterantworten.pdf] Handschrift-Extraktion erfolgreich: 1487 Zeichen
+ POST /api/extract-klausur 200 in 5.9s (compile: 6ms, proxy.ts: 62ms, render: 5.8s)
+ GET /correction 200 in 243ms (compile: 45ms, proxy.ts: 184ms, render: 14ms)
+ GET / 200 in 231ms (compile: 15ms, proxy.ts: 165ms, render: 51ms)
+Saving correction: {
+  id: 'Klausur Viktoria.pdf-1765567848468-0.09602276656180009',
+  fileName: 'Klausur Viktoria.pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Viktoria.pdf-1765567848468-0.09602276656180009
+ POST /api/corrections 200 in 463ms (compile: 4ms, proxy.ts: 110ms, render: 349ms)
+Saving correction: {
+  id: 'Klausur Valentina.pdf-1765567848468-0.9333196099556522',
+  fileName: 'Klausur Valentina.pdf',
+  status: 'Analyse läuft…'
+}
+ POST /api/upload-url 200 in 208ms (compile: 1539µs, proxy.ts: 52ms, render: 155ms)
+Korrektur erfolgreich gespeichert: Klausur Valentina.pdf-1765567848468-0.9333196099556522
+ POST /api/corrections 200 in 275ms (compile: 1432µs, proxy.ts: 65ms, render: 209ms)
+ POST /api/upload-url 200 in 270ms (compile: 1486µs, proxy.ts: 127ms, render: 141ms)
+Saving correction: {
+  id: 'Klausur Sophia H..pdf-1765567848469-0.8876147369159723',
+  fileName: 'Klausur Sophia H..pdf',
+  status: 'Analyse läuft…'
+}
+ POST /api/upload-url 200 in 372ms (compile: 1432µs, proxy.ts: 169ms, render: 201ms)
+ POST /api/upload-url 200 in 380ms (compile: 1501µs, proxy.ts: 103ms, render: 276ms)
+Korrektur erfolgreich gespeichert: Klausur Sophia H..pdf-1765567848469-0.8876147369159723
+ POST /api/corrections 200 in 214ms (compile: 1885µs, proxy.ts: 53ms, render: 159ms)
+Saving correction: {
+  id: 'Klausur Sofia P..pdf-1765567848469-0.38106577673386655',
+  fileName: 'Klausur Sofia P..pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Sofia P..pdf-1765567848469-0.38106577673386655
+ POST /api/corrections 200 in 258ms (compile: 1864µs, proxy.ts: 56ms, render: 200ms)
+Saving correction: {
+  id: 'Klausur Shana.pdf-1765567848469-0.8338457754609089',
+  fileName: 'Klausur Shana.pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Shana.pdf-1765567848469-0.8338457754609089
+ POST /api/corrections 200 in 275ms (compile: 4ms, proxy.ts: 68ms, render: 203ms)
+Saving correction: {
+  id: 'Klausur Romy.pdf-1765567848469-0.22211844295082372',
+  fileName: 'Klausur Romy.pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Romy.pdf-1765567848469-0.22211844295082372
+ POST /api/corrections 200 in 264ms (compile: 3ms, proxy.ts: 67ms, render: 194ms)
+Saving correction: {
+  id: 'Klausur Rana.pdf-1765567848470-0.7969777740888814',
+  fileName: 'Klausur Rana.pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Rana.pdf-1765567848470-0.7969777740888814
+ POST /api/corrections 200 in 371ms (compile: 2ms, proxy.ts: 73ms, render: 296ms)
+Saving correction: {
+  id: 'Klausur Melek.pdf-1765567848470-0.08202789730740367',
+  fileName: 'Klausur Melek.pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Melek.pdf-1765567848470-0.08202789730740367
+ POST /api/corrections 200 in 402ms (compile: 4ms, proxy.ts: 84ms, render: 314ms)
+Saving correction: {
+  id: 'Klausur Marijana.pdf-1765567848470-0.9689779435137191',
+  fileName: 'Klausur Marijana.pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Marijana.pdf-1765567848470-0.9689779435137191
+ POST /api/corrections 200 in 449ms (compile: 4ms, proxy.ts: 155ms, render: 290ms)
+Saving correction: {
+  id: 'Klausur Mara.pdf-1765567848470-0.3301549816756669',
+  fileName: 'Klausur Mara.pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Mara.pdf-1765567848470-0.3301549816756669
+ POST /api/corrections 200 in 322ms (compile: 3ms, proxy.ts: 83ms, render: 235ms)
+Saving correction: {
+  id: 'Klausur Madelaine.pdf-1765567848470-0.19963796416566282',
+  fileName: 'Klausur Madelaine.pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Madelaine.pdf-1765567848470-0.19963796416566282
+ POST /api/corrections 200 in 369ms (compile: 9ms, proxy.ts: 102ms, render: 258ms)
+Saving correction: {
+  id: 'Klausur Libyans.pdf-1765567848471-0.7622080616389636',
+  fileName: 'Klausur Libyans.pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Libyans.pdf-1765567848471-0.7622080616389636
+ POST /api/corrections 200 in 388ms (compile: 5ms, proxy.ts: 96ms, render: 287ms)
+Saving correction: {
+  id: 'Klausur Isabella.pdf-1765567848471-0.9034271349593187',
+  fileName: 'Klausur Isabella.pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Isabella.pdf-1765567848471-0.9034271349593187
+ POST /api/corrections 200 in 427ms (compile: 10ms, proxy.ts: 117ms, render: 300ms)
+Saving correction: {
+  id: 'Klausur Hanna.pdf-1765567848471-0.44786802993708186',
+  fileName: 'Klausur Hanna.pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Hanna.pdf-1765567848471-0.44786802993708186
+ POST /api/corrections 200 in 384ms (compile: 1974µs, proxy.ts: 123ms, render: 258ms)
+Saving correction: {
+  id: 'Klausur Haifa .pdf-1765567848471-0.168509333749832',
+  fileName: 'Klausur Haifa .pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Haifa .pdf-1765567848471-0.168509333749832
+ POST /api/corrections 200 in 365ms (compile: 4ms, proxy.ts: 92ms, render: 268ms)
+Saving correction: {
+  id: 'Klausur Anna.pdf-1765567848471-0.44280936237157165',
+  fileName: 'Klausur Anna.pdf',
+  status: 'Analyse läuft…'
+}
+Korrektur erfolgreich gespeichert: Klausur Anna.pdf-1765567848471-0.44280936237157165
+ POST /api/corrections 200 in 414ms (compile: 3ms, proxy.ts: 94ms, render: 318ms)
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/91002668-4bc5-4613-b32f-250808afc43a_Klausur_Valentina.pdf
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/53b72f43-0e11-41f7-a94f-feff8e0e8e72_Klausur_Viktoria.pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/91002668-4bc5-4613-b32f-250808afc43a_Klausur_Valentina.pdf] Datei geladen, Größe: 3684436 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/91002668-4bc5-4613-b32f-250808afc43a_Klausur_Valentina.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/ae3984e9-fbd6-4205-b571-b03d050e44de_Klausur_Sofia_P..pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/53b72f43-0e11-41f7-a94f-feff8e0e8e72_Klausur_Viktoria.pdf] Datei geladen, Größe: 4284670 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/53b72f43-0e11-41f7-a94f-feff8e0e8e72_Klausur_Viktoria.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/ae3984e9-fbd6-4205-b571-b03d050e44de_Klausur_Sofia_P..pdf] Datei geladen, Größe: 3777450 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/ae3984e9-fbd6-4205-b571-b03d050e44de_Klausur_Sofia_P..pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/c5d8d152-564a-4c3b-a7a6-519cfa8db5c5_Klausur_Sophia_H..pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/c5d8d152-564a-4c3b-a7a6-519cfa8db5c5_Klausur_Sophia_H..pdf] Datei geladen, Größe: 7076531 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/c5d8d152-564a-4c3b-a7a6-519cfa8db5c5_Klausur_Sophia_H..pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+Handschrift-Extraktion abgeschlossen: 2349 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/ae3984e9-fbd6-4205-b571-b03d050e44de_Klausur_Sofia_P..pdf] Handschrift-Extraktion erfolgreich: 2349 Zeichen
+ POST /api/extract-klausur 200 in 22.2s (compile: 1772µs, proxy.ts: 54ms, render: 22.1s)
+Starte Analyse... {
+  klausurTextLength: 2348,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Sofia P..pdf-1765567848469-0.38106577673386655'
+}
+Verwende alte Analyse-Funktion...
+ POST /api/upload-url 200 in 246ms (compile: 5ms, proxy.ts: 66ms, render: 175ms)
+Handschrift-Extraktion abgeschlossen: 2781 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/91002668-4bc5-4613-b32f-250808afc43a_Klausur_Valentina.pdf] Handschrift-Extraktion erfolgreich: 2781 Zeichen
+ POST /api/extract-klausur 200 in 26.7s (compile: 6ms, proxy.ts: 160ms, render: 26.6s)
+Handschrift-Extraktion abgeschlossen: 1489 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/53b72f43-0e11-41f7-a94f-feff8e0e8e72_Klausur_Viktoria.pdf] Handschrift-Extraktion erfolgreich: 1489 Zeichen
+ POST /api/extract-klausur 200 in 26.4s (compile: 4ms, proxy.ts: 145ms, render: 26.3s)
+ POST /api/upload-url 200 in 242ms (compile: 5ms, proxy.ts: 88ms, render: 149ms)
+ POST /api/upload-url 200 in 293ms (compile: 3ms, proxy.ts: 141ms, render: 149ms)
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/a18d7e4a-db9b-4d97-9e87-41bd05cdbedd_Klausur_Shana.pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/a18d7e4a-db9b-4d97-9e87-41bd05cdbedd_Klausur_Shana.pdf] Datei geladen, Größe: 4965937 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/a18d7e4a-db9b-4d97-9e87-41bd05cdbedd_Klausur_Shana.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+Handschrift-Extraktion abgeschlossen: 1819 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/c5d8d152-564a-4c3b-a7a6-519cfa8db5c5_Klausur_Sophia_H..pdf] Handschrift-Extraktion erfolgreich: 1819 Zeichen
+ POST /api/extract-klausur 200 in 23.9s (compile: 9ms, proxy.ts: 143ms, render: 23.7s)
+ POST /api/upload-url 200 in 192ms (compile: 4ms, proxy.ts: 65ms, render: 123ms)
+ GET /correction 200 in 164ms (compile: 7ms, proxy.ts: 103ms, render: 55ms)
+ GET / 200 in 347ms (compile: 23ms, proxy.ts: 195ms, render: 130ms)
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/4a6bbea9-a53e-4f2c-bdca-91c13a02e108_Klausur_Rana.pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/4a6bbea9-a53e-4f2c-bdca-91c13a02e108_Klausur_Rana.pdf] Datei geladen, Größe: 3523256 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/4a6bbea9-a53e-4f2c-bdca-91c13a02e108_Klausur_Rana.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/6518d75e-cdac-4b55-9aa1-39e985e00ee6_Klausur_Melek.pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/6518d75e-cdac-4b55-9aa1-39e985e00ee6_Klausur_Melek.pdf] Datei geladen, Größe: 3266857 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/6518d75e-cdac-4b55-9aa1-39e985e00ee6_Klausur_Melek.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4836,
+  completion_tokens: 1352,
+  total_tokens: 6188,
+  estimated_cost_usd: '0.001537'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 5
+Aufgaben IDs in Response: [
+  'Aufgabe 1 - Was ist Boden?',
+  'Aufgabe 2 - Verwitterung',
+  'Aufgabe 3 - Bodenprofil',
+  'Aufgabe 4 - Bedeutung des Bodens',
+  'Aufgabe 5 - Pflanzen und Boden'
+]
+Analyse erfolgreich abgeschlossen: 5 22 50
+ POST /api/analyze 200 in 24.8s (compile: 8ms, proxy.ts: 160ms, render: 24.6s)
+Saving correction: {
+  id: 'Klausur Sofia P..pdf-1765567848469-0.38106577673386655',
+  fileName: 'Klausur Sofia P..pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 260ms (compile: 3ms, proxy.ts: 73ms, render: 185ms)
+Starte Analyse... {
+  klausurTextLength: 2780,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Valentina.pdf-1765567848468-0.9333196099556522'
+}
+Verwende alte Analyse-Funktion...
+Handschrift-Extraktion abgeschlossen: 2034 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/a18d7e4a-db9b-4d97-9e87-41bd05cdbedd_Klausur_Shana.pdf] Handschrift-Extraktion erfolgreich: 2034 Zeichen
+ POST /api/extract-klausur 200 in 20.0s (compile: 4ms, proxy.ts: 70ms, render: 20.0s)
+ POST /api/upload-url 200 in 194ms (compile: 5ms, proxy.ts: 57ms, render: 132ms)
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/f6ecc6fd-48ed-42b3-9ac4-afb99c74d193_Klausur_Romy.pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/f6ecc6fd-48ed-42b3-9ac4-afb99c74d193_Klausur_Romy.pdf] Datei geladen, Größe: 5711203 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/f6ecc6fd-48ed-42b3-9ac4-afb99c74d193_Klausur_Romy.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/0bd02a92-b0c0-4d25-94e4-fa94224821b4_Klausur_Marijana.pdf
+ GET /correction 200 in 273ms (compile: 21ms, proxy.ts: 228ms, render: 23ms)
+ GET / 200 in 88ms (compile: 5ms, proxy.ts: 61ms, render: 21ms)
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/0bd02a92-b0c0-4d25-94e4-fa94224821b4_Klausur_Marijana.pdf] Datei geladen, Größe: 3597176 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/0bd02a92-b0c0-4d25-94e4-fa94224821b4_Klausur_Marijana.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+Handschrift-Extraktion abgeschlossen: 1904 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/6518d75e-cdac-4b55-9aa1-39e985e00ee6_Klausur_Melek.pdf] Handschrift-Extraktion erfolgreich: 1904 Zeichen
+ POST /api/extract-klausur 200 in 19.2s (compile: 3ms, proxy.ts: 71ms, render: 19.1s)
+ POST /api/upload-url 200 in 268ms (compile: 5ms, proxy.ts: 86ms, render: 177ms)
+Handschrift-Extraktion abgeschlossen: 2248 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/4a6bbea9-a53e-4f2c-bdca-91c13a02e108_Klausur_Rana.pdf] Handschrift-Extraktion erfolgreich: 2248 Zeichen
+ POST /api/extract-klausur 200 in 21.4s (compile: 5ms, proxy.ts: 114ms, render: 21.3s)
+ POST /api/upload-url 200 in 232ms (compile: 5ms, proxy.ts: 79ms, render: 148ms)
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 5019,
+  completion_tokens: 1214,
+  total_tokens: 6233,
+  estimated_cost_usd: '0.001481'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 5
+Aufgaben IDs in Response: [
+  'Aufgabe 1 – Was ist Boden?',
+  'Aufgabe 2 – Verwitterung',
+  'Aufgabe 3 – Beschriftung des Bodenprofils',
+  'Aufgabe 4 – Bedeutung des Bodens',
+  'Aufgabe 5 – Boden und Fotosynthese'
+]
+Analyse erfolgreich abgeschlossen: 5 23 50
+ POST /api/analyze 200 in 21.9s (compile: 3ms, proxy.ts: 55ms, render: 21.8s)
+Saving correction: {
+  id: 'Klausur Valentina.pdf-1765567848468-0.9333196099556522',
+  fileName: 'Klausur Valentina.pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 297ms (compile: 4ms, proxy.ts: 67ms, render: 225ms)
+Starte Analyse... {
+  klausurTextLength: 1488,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Viktoria.pdf-1765567848468-0.09602276656180009'
+}
+Verwende alte Analyse-Funktion...
+Handschrift-Extraktion abgeschlossen: 2309 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/f6ecc6fd-48ed-42b3-9ac4-afb99c74d193_Klausur_Romy.pdf] Handschrift-Extraktion erfolgreich: 2309 Zeichen
+ POST /api/extract-klausur 200 in 24.5s (compile: 1889µs, proxy.ts: 61ms, render: 24.4s)
+ POST /api/upload-url 200 in 286ms (compile: 13ms, proxy.ts: 121ms, render: 152ms)
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/3e6c13a4-c27c-4fe1-a958-29edd8c6005a_Klausur_Madelaine.pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/3e6c13a4-c27c-4fe1-a958-29edd8c6005a_Klausur_Madelaine.pdf] Datei geladen, Größe: 4410101 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/3e6c13a4-c27c-4fe1-a958-29edd8c6005a_Klausur_Madelaine.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+Handschrift-Extraktion abgeschlossen: 2558 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/0bd02a92-b0c0-4d25-94e4-fa94224821b4_Klausur_Marijana.pdf] Handschrift-Extraktion erfolgreich: 2558 Zeichen
+ POST /api/extract-klausur 200 in 16.7s (compile: 12ms, proxy.ts: 172ms, render: 16.6s)
+ POST /api/upload-url 200 in 254ms (compile: 4ms, proxy.ts: 82ms, render: 168ms)
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/f985f35b-cda7-4e96-9803-bdd0b9e0b37f_Klausur_Mara.pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/f985f35b-cda7-4e96-9803-bdd0b9e0b37f_Klausur_Mara.pdf] Datei geladen, Größe: 6447192 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/f985f35b-cda7-4e96-9803-bdd0b9e0b37f_Klausur_Mara.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4644,
+  completion_tokens: 1118,
+  total_tokens: 5762,
+  estimated_cost_usd: '0.001367'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 5
+Aufgaben IDs in Response: [ 'Aufgabe 1', 'Aufgabe 2', 'Aufgabe 3', 'Aufgabe 4', 'Aufgabe 5' ]
+Analyse erfolgreich abgeschlossen: 5 15 50
+ POST /api/analyze 200 in 20.1s (compile: 3ms, proxy.ts: 88ms, render: 20.0s)
+Saving correction: {
+  id: 'Klausur Viktoria.pdf-1765567848468-0.09602276656180009',
+  fileName: 'Klausur Viktoria.pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 278ms (compile: 7ms, proxy.ts: 66ms, render: 205ms)
+Starte Analyse... {
+  klausurTextLength: 1818,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Sophia H..pdf-1765567848469-0.8876147369159723'
+}
+Verwende alte Analyse-Funktion...
+Handschrift-Extraktion abgeschlossen: 1536 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/3e6c13a4-c27c-4fe1-a958-29edd8c6005a_Klausur_Madelaine.pdf] Handschrift-Extraktion erfolgreich: 1536 Zeichen
+ POST /api/extract-klausur 200 in 18.8s (compile: 14ms, proxy.ts: 64ms, render: 18.7s)
+ POST /api/upload-url 200 in 335ms (compile: 9ms, proxy.ts: 151ms, render: 175ms)
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/fa968d6f-2fd5-4295-8c9c-4704a5791739_Klausur_Libyans.pdf
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4750,
+  completion_tokens: 1221,
+  total_tokens: 5971,
+  estimated_cost_usd: '0.001445'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 5
+Aufgaben IDs in Response: [
+  'Aufgabe 1 - Was ist Boden?',
+  'Aufgabe 2 - Verwitterung',
+  'Aufgabe 3 - Bodenschichten beschriften und erklären',
+  'Aufgabe 4 - Bedeutung des Bodens für Pflanzen, Tiere und Menschen',
+  'Aufgabe 5 - Bedeutung des Bodens für die Pflanzenproduktion'
+]
+Analyse erfolgreich abgeschlossen: 5 15 50
+ POST /api/analyze 200 in 20.3s (compile: 2ms, proxy.ts: 60ms, render: 20.2s)
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/fa968d6f-2fd5-4295-8c9c-4704a5791739_Klausur_Libyans.pdf] Datei geladen, Größe: 5925599 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/fa968d6f-2fd5-4295-8c9c-4704a5791739_Klausur_Libyans.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+Saving correction: {
+  id: 'Klausur Sophia H..pdf-1765567848469-0.8876147369159723',
+  fileName: 'Klausur Sophia H..pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 377ms (compile: 2ms, proxy.ts: 69ms, render: 305ms)
+Starte Analyse... {
+  klausurTextLength: 2033,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Shana.pdf-1765567848469-0.8338457754609089'
+}
+Verwende alte Analyse-Funktion...
+Handschrift-Extraktion abgeschlossen: 1422 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/f985f35b-cda7-4e96-9803-bdd0b9e0b37f_Klausur_Mara.pdf] Handschrift-Extraktion erfolgreich: 1422 Zeichen
+ POST /api/extract-klausur 200 in 30.7s (compile: 3ms, proxy.ts: 89ms, render: 30.6s)
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/3e5392ff-00c6-4e82-b1d1-32d0490188fa_Klausur_Isabella.pdf
+ POST /api/upload-url 200 in 168ms (compile: 3ms, proxy.ts: 54ms, render: 111ms)
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/3e5392ff-00c6-4e82-b1d1-32d0490188fa_Klausur_Isabella.pdf] Datei geladen, Größe: 6373187 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/3e5392ff-00c6-4e82-b1d1-32d0490188fa_Klausur_Isabella.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4751,
+  completion_tokens: 1257,
+  total_tokens: 6008,
+  estimated_cost_usd: '0.001467'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 5
+Aufgaben IDs in Response: [
+  'Aufgabe 1: Wofür brauchen wir den Boden?',
+  'Aufgabe 2: Fotosynthese',
+  'Aufgabe 3: Beschriftung',
+  'Aufgabe 4: Bedeutung des Bodens',
+  'Aufgabe 5: Fotosynthese und Nahrungsmittelproduktion'
+]
+Analyse erfolgreich abgeschlossen: 5 31 50
+ POST /api/analyze 200 in 25.0s (compile: 2ms, proxy.ts: 51ms, render: 25.0s)
+Saving correction: {
+  id: 'Klausur Shana.pdf-1765567848469-0.8338457754609089',
+  fileName: 'Klausur Shana.pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 307ms (compile: 4ms, proxy.ts: 72ms, render: 230ms)
+Starte Analyse... {
+  klausurTextLength: 1903,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Melek.pdf-1765567848470-0.08202789730740367'
+}
+Verwende alte Analyse-Funktion...
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/53d1f5ec-b9a4-43df-88e5-43d1593f3318_Klausur_Hanna.pdf
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/0200faeb-c20e-4890-8623-786a82acb43d_Klausur_Haifa_.pdf
+Handschrift-Extraktion abgeschlossen: 1856 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/fa968d6f-2fd5-4295-8c9c-4704a5791739_Klausur_Libyans.pdf] Handschrift-Extraktion erfolgreich: 1856 Zeichen
+ POST /api/extract-klausur 200 in 29.8s (compile: 5ms, proxy.ts: 173ms, render: 29.6s)
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/53d1f5ec-b9a4-43df-88e5-43d1593f3318_Klausur_Hanna.pdf] Datei geladen, Größe: 7941907 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/53d1f5ec-b9a4-43df-88e5-43d1593f3318_Klausur_Hanna.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/0200faeb-c20e-4890-8623-786a82acb43d_Klausur_Haifa_.pdf] Datei geladen, Größe: 4925251 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/0200faeb-c20e-4890-8623-786a82acb43d_Klausur_Haifa_.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+ POST /api/upload-url 200 in 228ms (compile: 6ms, proxy.ts: 80ms, render: 142ms)
+Handschrift-Extraktion abgeschlossen: 2210 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/3e5392ff-00c6-4e82-b1d1-32d0490188fa_Klausur_Isabella.pdf] Handschrift-Extraktion erfolgreich: 2210 Zeichen
+ POST /api/extract-klausur 200 in 31.2s (compile: 4ms, proxy.ts: 87ms, render: 31.1s)
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4730,
+  completion_tokens: 1189,
+  total_tokens: 5919,
+  estimated_cost_usd: '0.001423'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 5
+Aufgaben IDs in Response: [
+  'Aufgabe 1: Wofür brauchen wir den Boden?',
+  'Aufgabe 2: Was passiert bei der Fotosynthese?',
+  'Aufgabe 3: Beschriftung der Fotosynthese',
+  'Aufgabe 4: Bedeutung des Bodens für Lebewesen',
+  'Aufgabe 5: Fotosynthese und ihre Bedeutung'
+]
+Analyse erfolgreich abgeschlossen: 5 22 50
+ POST /api/analyze 200 in 20.9s (compile: 4ms, proxy.ts: 61ms, render: 20.9s)
+Saving correction: {
+  id: 'Klausur Melek.pdf-1765567848470-0.08202789730740367',
+  fileName: 'Klausur Melek.pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 232ms (compile: 2ms, proxy.ts: 59ms, render: 171ms)
+Starte Analyse... {
+  klausurTextLength: 2247,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Rana.pdf-1765567848470-0.7969777740888814'
+}
+Verwende alte Analyse-Funktion...
+Handschrift-Extraktion abgeschlossen: 1450 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/0200faeb-c20e-4890-8623-786a82acb43d_Klausur_Haifa_.pdf] Handschrift-Extraktion erfolgreich: 1450 Zeichen
+ POST /api/extract-klausur 200 in 22.1s (compile: 3ms, proxy.ts: 83ms, render: 22.0s)
+Datei-Key empfangen: ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/2c6b3340-9e1a-47f8-9f64-590bdc46a71d_Klausur_Anna.pdf
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/2c6b3340-9e1a-47f8-9f64-590bdc46a71d_Klausur_Anna.pdf] Datei geladen, Größe: 7089021 bytes
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/2c6b3340-9e1a-47f8-9f64-590bdc46a71d_Klausur_Anna.pdf] Starte Handschrift-Extraktion mit Gemini...
+Starte Handschrift-Extraktion mit Gemini...
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4814,
+  completion_tokens: 600,
+  total_tokens: 5414,
+  estimated_cost_usd: '0.001082'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 2
+Aufgaben IDs in Response: [
+  'Aufgabe 1: Wofür brauchen wir den Boden?',
+  'Aufgabe 2: Fotosynthese'
+]
+⚠️ WARNUNG: Response enthält nur 2 Aufgaben, aber Erwartungshorizont hat 5 Aufgaben!
+Fehlende Aufgaben: [ '3', '4', '5' ]
+Analyse erfolgreich abgeschlossen: 2 24 50
+ POST /api/analyze 200 in 11.2s (compile: 4ms, proxy.ts: 64ms, render: 11.1s)
+Saving correction: {
+  id: 'Klausur Rana.pdf-1765567848470-0.7969777740888814',
+  fileName: 'Klausur Rana.pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 233ms (compile: 3ms, proxy.ts: 58ms, render: 172ms)
+Starte Analyse... {
+  klausurTextLength: 2308,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Romy.pdf-1765567848469-0.22211844295082372'
+}
+Verwende alte Analyse-Funktion...
+Handschrift-Extraktion abgeschlossen: 2981 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/53d1f5ec-b9a4-43df-88e5-43d1593f3318_Klausur_Hanna.pdf] Handschrift-Extraktion erfolgreich: 2981 Zeichen
+ POST /api/extract-klausur 200 in 39.8s (compile: 3ms, proxy.ts: 79ms, render: 39.7s)
+Handschrift-Extraktion abgeschlossen: 1915 Zeichen
+[ec0c8265-0db3-4af8-8a63-dfeda9ffd95e/2c6b3340-9e1a-47f8-9f64-590bdc46a71d_Klausur_Anna.pdf] Handschrift-Extraktion erfolgreich: 1915 Zeichen
+ POST /api/extract-klausur 200 in 24.6s (compile: 3ms, proxy.ts: 76ms, render: 24.5s)
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4861,
+  completion_tokens: 2221,
+  total_tokens: 7082,
+  estimated_cost_usd: '0.002062'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 10
+Aufgaben IDs in Response: [
+  'Aufgabe 1.1 – Was ist Boden?',
+  'Aufgabe 1.2 – Biologische Bestandteile des Bodens',
+  'Aufgabe 1.3 – Funktionen des Bodens',
+  'Aufgabe 2.1 – Verwitterung',
+  'Aufgabe 2.2 – Frostsprengung',
+  'Aufgabe 3.1 – Bodenprofil beschriften',
+  'Aufgabe 3.2 – Erklärung des Bodenprofils',
+  'Aufgabe 4.1 – Pflanzen, Tiere, Menschen',
+  'Aufgabe 4.2 – Verdichteter Boden',
+  'Aufgabe 5.1 – Wasser und Nährstoffe für Pflanzen'
+]
+Analyse erfolgreich abgeschlossen: 10 18 50
+ POST /api/analyze 200 in 38.5s (compile: 4ms, proxy.ts: 81ms, render: 38.4s)
+Saving correction: {
+  id: 'Klausur Romy.pdf-1765567848469-0.22211844295082372',
+  fileName: 'Klausur Romy.pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 640ms (compile: 4ms, proxy.ts: 344ms, render: 292ms)
+Starte Analyse... {
+  klausurTextLength: 2557,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Marijana.pdf-1765567848470-0.9689779435137191'
+}
+Verwende alte Analyse-Funktion...
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4911,
+  completion_tokens: 898,
+  total_tokens: 5809,
+  estimated_cost_usd: '0.001275'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 3
+Aufgaben IDs in Response: [
+  'Aufgabe 1: Wofür brauchen wir den Boden?',
+  'Aufgabe 2: Fotosynthese',
+  'Aufgabe 3: Bedeutung der Fotosynthese'
+]
+⚠️ WARNUNG: Response enthält nur 3 Aufgaben, aber Erwartungshorizont hat 5 Aufgaben!
+Fehlende Aufgaben: [ '4', '5' ]
+Analyse erfolgreich abgeschlossen: 3 24 50
+ POST /api/analyze 200 in 16.0s (compile: 5ms, proxy.ts: 71ms, render: 16.0s)
+Saving correction: {
+  id: 'Klausur Marijana.pdf-1765567848470-0.9689779435137191',
+  fileName: 'Klausur Marijana.pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 269ms (compile: 3ms, proxy.ts: 75ms, render: 190ms)
+Starte Analyse... {
+  klausurTextLength: 1535,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Madelaine.pdf-1765567848470-0.19963796416566282'
+}
+Verwende alte Analyse-Funktion...
+ GET /correction 200 in 174ms (compile: 6ms, proxy.ts: 122ms, render: 45ms)
+ GET / 200 in 163ms (compile: 5ms, proxy.ts: 136ms, render: 23ms)
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4680,
+  completion_tokens: 1108,
+  total_tokens: 5788,
+  estimated_cost_usd: '0.001367'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 5
+Aufgaben IDs in Response: [
+  'Aufgabe 1: Boden',
+  'Aufgabe 2: Verwitterung',
+  'Aufgabe 3: Beschriftung',
+  'Aufgabe 4: Bedeutung des Bodens',
+  'Aufgabe 5: Fotosynthese'
+]
+Analyse erfolgreich abgeschlossen: 5 16 50
+ POST /api/analyze 200 in 19.4s (compile: 5ms, proxy.ts: 75ms, render: 19.3s)
+Saving correction: {
+  id: 'Klausur Madelaine.pdf-1765567848470-0.19963796416566282',
+  fileName: 'Klausur Madelaine.pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 276ms (compile: 3ms, proxy.ts: 79ms, render: 194ms)
+Starte Analyse... {
+  klausurTextLength: 1422,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Mara.pdf-1765567848470-0.3301549816756669'
+}
+Verwende alte Analyse-Funktion...
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4643,
+  completion_tokens: 1156,
+  total_tokens: 5799,
+  estimated_cost_usd: '0.001390'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 5
+Aufgaben IDs in Response: [ 'Aufgabe 1', 'Aufgabe 2', 'Aufgabe 3', 'Aufgabe 4', 'Aufgabe 5' ]
+Analyse erfolgreich abgeschlossen: 5 15 50
+ POST /api/analyze 200 in 20.8s (compile: 3ms, proxy.ts: 74ms, render: 20.7s)
+Saving correction: {
+  id: 'Klausur Mara.pdf-1765567848470-0.3301549816756669',
+  fileName: 'Klausur Mara.pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 284ms (compile: 8ms, proxy.ts: 78ms, render: 199ms)
+Starte Analyse... {
+  klausurTextLength: 1855,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Libyans.pdf-1765567848471-0.7622080616389636'
+}
+Verwende alte Analyse-Funktion...
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4724,
+  completion_tokens: 1725,
+  total_tokens: 6449,
+  estimated_cost_usd: '0.001744'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 7
+Aufgaben IDs in Response: [
+  'Aufgabe 1.1: Was ist Boden?',
+  'Aufgabe 1.2: Nenne zwei wichtige biologische Bestandteile des Bodens.',
+  'Aufgabe 1.3: Nenne zwei Aufgaben oder Funktionen des Bodens.',
+  'Aufgabe 1.4: Erkläre, warum Straßen nach dem Winter oft Schäden haben.',
+  'Aufgabe 2.1: Nenne zwei Gründe, warum der Boden für Pflanzen, Tiere und Menschen wichtig ist.',
+  'Aufgabe 2.2: Erkläre, was passiert, wenn der Boden stark ausgetrocknet ist.',
+  'Aufgabe 5: Erkläre, welche Rolle der Boden für das Wachstum der Pflanzen spielt.'
+]
+Analyse erfolgreich abgeschlossen: 7 19 50
+ POST /api/analyze 200 in 31.4s (compile: 6ms, proxy.ts: 77ms, render: 31.3s)
+Saving correction: {
+  id: 'Klausur Libyans.pdf-1765567848471-0.7622080616389636',
+  fileName: 'Klausur Libyans.pdf',
+  status: 'Bereit'
+}
+ GET /correction 200 in 80ms (compile: 3ms, proxy.ts: 64ms, render: 13ms)
+ GET / 200 in 97ms (compile: 4ms, proxy.ts: 63ms, render: 30ms)
+ POST /api/corrections 200 in 328ms (compile: 15ms, proxy.ts: 73ms, render: 240ms)
+Starte Analyse... {
+  klausurTextLength: 2209,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Isabella.pdf-1765567848471-0.9034271349593187'
+}
+Verwende alte Analyse-Funktion...
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4855,
+  completion_tokens: 1240,
+  total_tokens: 6095,
+  estimated_cost_usd: '0.001472'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 5
+Aufgaben IDs in Response: [
+  'Aufgabe 1 – Was ist Boden?',
+  'Aufgabe 2 – Verwitterung',
+  'Aufgabe 3 – Bodenprofil',
+  'Aufgabe 4 – Funktionen des Bodens',
+  'Aufgabe 5 – Bedeutung des Bodens für Pflanzen'
+]
+Analyse erfolgreich abgeschlossen: 5 20 50
+ POST /api/analyze 200 in 26.7s (compile: 1640µs, proxy.ts: 61ms, render: 26.6s)
+Saving correction: {
+  id: 'Klausur Isabella.pdf-1765567848471-0.9034271349593187',
+  fileName: 'Klausur Isabella.pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 253ms (compile: 5ms, proxy.ts: 68ms, render: 180ms)
+Starte Analyse... {
+  klausurTextLength: 1449,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Haifa .pdf-1765567848471-0.168509333749832'
+}
+Verwende alte Analyse-Funktion...
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4594,
+  completion_tokens: 1116,
+  total_tokens: 5710,
+  estimated_cost_usd: '0.001359'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 5
+Aufgaben IDs in Response: [
+  'Aufgabe 1: Was ist Boden?',
+  'Aufgabe 2: Verwitterung',
+  'Aufgabe 3: Bodenschichten',
+  'Aufgabe 4: Bedeutung des Bodens',
+  'Aufgabe 5: Fotosynthese'
+]
+Analyse erfolgreich abgeschlossen: 5 18 50
+ POST /api/analyze 200 in 21.8s (compile: 4ms, proxy.ts: 66ms, render: 21.7s)
+Saving correction: {
+  id: 'Klausur Haifa .pdf-1765567848471-0.168509333749832',
+  fileName: 'Klausur Haifa .pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 250ms (compile: 2ms, proxy.ts: 69ms, render: 179ms)
+Starte Analyse... {
+  klausurTextLength: 2980,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Hanna.pdf-1765567848471-0.44786802993708186'
+}
+Verwende alte Analyse-Funktion...
+ GET /correction 200 in 181ms (compile: 8ms, proxy.ts: 130ms, render: 43ms)
+ GET / 200 in 183ms (compile: 26ms, proxy.ts: 132ms, render: 24ms)
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 5050,
+  completion_tokens: 1382,
+  total_tokens: 6432,
+  estimated_cost_usd: '0.001587'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 5
+Aufgaben IDs in Response: [
+  'Aufgabe 1 - Was ist Boden?',
+  'Aufgabe 2 - Verwitterung',
+  'Aufgabe 3 - Beschriftung',
+  'Aufgabe 4 - Funktionen des Bodens',
+  'Aufgabe 5 - Bedeutung des Bodens für Pflanzen'
+]
+Analyse erfolgreich abgeschlossen: 5 22 50
+ POST /api/analyze 200 in 24.8s (compile: 1875µs, proxy.ts: 55ms, render: 24.8s)
+Saving correction: {
+  id: 'Klausur Hanna.pdf-1765567848471-0.44786802993708186',
+  fileName: 'Klausur Hanna.pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 226ms (compile: 4ms, proxy.ts: 67ms, render: 155ms)
+Starte Analyse... {
+  klausurTextLength: 1914,
+  erwartungshorizontLength: 1486,
+  useUniversal: false,
+  studentName: 'Unbekannt',
+  correctionId: 'Klausur Anna.pdf-1765567848471-0.44280936237157165'
+}
+Verwende alte Analyse-Funktion...
+[Token-Usage] analyzeKlausur (alt): {
+  prompt_tokens: 4746,
+  completion_tokens: 1129,
+  total_tokens: 5875,
+  estimated_cost_usd: '0.001389'
+}
+[Task-Parse] Pass 2 (Aufgabe/Frage): 5 Aufgaben gefunden
+=== OPENAI RESPONSE DEBUG (alte Funktion) ===
+Anzahl Aufgaben im Erwartungshorizont: 5
+Aufgaben IDs im Erwartungshorizont: [ '1', '2', '3', '4', '5' ]
+Anzahl Aufgaben in OpenAI Response: 5
+Aufgaben IDs in Response: [
+  'Aufgabe 1 - Was ist Boden?',
+  'Aufgabe 2 - Verwitterung',
+  'Aufgabe 3 - Bodenprofil',
+  'Aufgabe 4 - Bedeutung des Bodens',
+  'Aufgabe 5 - Pflanzen und Boden'
+]
+Analyse erfolgreich abgeschlossen: 5 20 50
+ POST /api/analyze 200 in 20.7s (compile: 3ms, proxy.ts: 62ms, render: 20.7s)
+Saving correction: {
+  id: 'Klausur Anna.pdf-1765567848471-0.44280936237157165',
+  fileName: 'Klausur Anna.pdf',
+  status: 'Bereit'
+}
+ POST /api/corrections 200 in 256ms (compile: 4ms, proxy.ts: 70ms, render: 182ms)
+ GET /results 200 in 125ms (compile: 8ms, proxy.ts: 66ms, render: 51ms)
+ GET /results 200 in 86ms (compile: 4ms, proxy.ts: 58ms, render: 25ms)
+ GET / 200 in 92ms (compile: 3ms, proxy.ts: 67ms, render: 22ms)
+ GET /results 200 in 167ms (compile: 6ms, proxy.ts: 131ms, render: 30ms)
+ GET / 200 in 216ms (compile: 11ms, proxy.ts: 157ms, render: 48ms)
+
+
+
+
+
+
+
